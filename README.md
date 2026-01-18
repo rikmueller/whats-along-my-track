@@ -212,14 +212,6 @@ overpass:
 presets_file: "presets.yaml"
 ```
 
-**What this config does:**
-- Searches for camping sites (excluding those without tent options) within 5 km of your GPX track
-- Expects GPX file at `./input/track.gpx`
-- Generates Excel file with "Matching Filter" column showing which filter matched each result
-- Colors markers on map by filter rank: camping sites get red (Filter 1), any second filter gets orange, etc.
-- Saves results to `./output/` as `MyProject_<date>_<timestamp>.xlsx` and `MyProject_<date>_<timestamp>.html`
-- Map starts at zoom level 10 with blue track line
-
 ### CLI
 
 The following command line arguments can override settings from `config.yaml`:
@@ -240,48 +232,25 @@ The following command line arguments can override settings from `config.yaml`:
 
 ## Presets
 
-The file `presets.yaml` contains predefined filter profiles.
+Presets are predefined filter profiles stored in `presets.yaml` that combine multiple OSM tags into reusable search templates. Instead of manually specifying include/exclude filters, you can use a preset name to quickly search for common amenities and landmarks.
 
-### Example presets:
+### How to use presets
 
-```yaml
-presets:
-  camp_basic:
-    include:
-      - "tourism=camp_site"
-    exclude:
-      - "tents=no"
-      - "camp_site:tent=no"
+Use the `--preset` argument followed by a preset name:
 
-  camp_and_caravan:
-    include:
-      - "tourism=camp_site"
-      - "tourism=caravan_site"
-    exclude:
-      - "tents=no"
-
-  wild_camping_spots:
-    include:
-      - "camp_site=wild"
-
-  shelters:
-    include:
-      - "amenity=shelter"
-
-  hotel:
-    include:
-      - "tourism=hotel"
-
-  accommodation:
-    include:
-      - "tourism=hotel"
-      - "tourism=guest_house"
-      - "tourism=bed_and_breakfast"
-
-  drinking_water:
-    include:
-      - "amenity=drinking_water"
+```bash
+python3 main.py --preset camp_basic
 ```
+
+You can also combine multiple presets:
+
+```bash
+python3 main.py --preset camp_basic --preset drinking_water
+```
+
+### Available presets
+
+For a complete list of available presets and how to create your own, see the [Presets documentation on the Wiki](https://github.com/rikmueller/osm_finder/wiki).
 
 ## Usage
 
@@ -323,25 +292,6 @@ Full example:
 ```bash
 python3 main.py --preset camp_basic --include amenity=toilets --exclude fee=yes --gpx-file mytrack.gpx --project-name Tour2025
 ```
-
-## Output
-
-The tool generates two files:
-
-- **Excel file** (`<project_name>_<date>_<timestamp>.xlsx`): Contains all found objects with details including:
-  - Name, Website, Phone, Opening hours
-  - Kilometers from start of track
-  - Distance from track (km)
-  - **Matching Filter** - Shows which include filter matched each object
-  - OSM Tags
-
-- **Interactive map** (`<project_name>_<date>_<timestamp>.html`): Folium map featuring:
-  - Your GPX track (blue line)
-  - Markers colored by filter (first filter = red, second = orange, etc.)
-  - Popup information for each marker
-  - Locate button to show your current position
-
-Both files are saved in the directory defined by `project.output_path` (default: `./output/`).
 
 ## Technical Notes
 
