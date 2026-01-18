@@ -77,7 +77,7 @@ search:
   # Set to null to auto-calculate as 60% of radius_km (highly suggested)
   step_km: null
   # OSM tags to search for (include filters)
-  # Find available tags at: https://taginfo.openstreetmap.org/
+  # Find available tags at: https://taginfo.openstreetmap.org/ or https://wiki.openstreetmap.org/wiki/Map_Features
   include:
     - "tourism=camp_site"
   # OSM tags to exclude from results (exclude filters)
@@ -113,7 +113,11 @@ presets_file: "presets.yaml"
 ```
 
 **What this config does:**
-This example configuration searches for camping sites (excluding those without tent options) within 5 km of your GPX track. It generates an Excel file and interactive map, with markers color-coded by distance: green for locations within 2 km, orange for 2-5 km, and red for locations farther away. The map starts at zoom level 10 with a blue track line. The GPX file is expected at `./input/track.gpx`, Results are saved to `./output/`.
+- This example configuration searches for camping sites (excluding those without tent options) within 5 km of your GPX track. 
+- The GPX file is expected at `./input/track.gpx`. 
+- It generates an Excel file and interactive map 
+- The map starts at zoom level 10 with a blue track line and markers color-coded by distance: green for locations within 2 km, orange for 2-5 km, and red for locations farther away. 
+- Results are saved to `./output/`.
 
 ## Presets
 
