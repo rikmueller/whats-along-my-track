@@ -20,13 +20,30 @@ git clone https://github.com/your_username/osm_finder.git
 cd osm_finder
 ```
 
-### Install dependencies
+### Create a virtual environment
+It's recommended to use a Python virtual environment to avoid conflicts with system packages.
+
+**On Linux/macOS:**
+```bash
+python3 -m venv osm_finder
+source osm_finder/bin/activate
 ```
+
+**On Windows:**
+```bash
+python -m venv osm_finder
+osm_finder\Scripts\activate
+```
+
+Your prompt should now show `(venv)` at the beginning, indicating the virtual environment is active.
+
+### Install dependencies
+```bash
 pip install -r requirements.txt
 ```
 
 Or install manually:
-```
+```bash
 pip install gpxpy shapely pyproj requests tqdm folium pyyaml pandas
 ```
 
