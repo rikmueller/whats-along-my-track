@@ -144,7 +144,14 @@ pip install gpxpy shapely pyproj requests tqdm folium pyyaml pandas openpyxl
 
 ## Configuration
 
-All default settings are stored in `config.yaml`.
+All default settings are stored in `config.yaml`. However, **you don't need to edit the config file** - most settings can be overridden using command line arguments. For example:
+
+- `--gpx-file mytrack.gpx` overrides the input GPX file
+- `--include amenity=toilets` adds include filters
+- `--project-name MyProject` sets the output project name
+- etc.
+
+This means you can keep a single `config.yaml` with your preferred defaults and adjust settings per run using CLI arguments.
 
 ### Example config:
 
