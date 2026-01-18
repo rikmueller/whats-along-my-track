@@ -1,32 +1,49 @@
 project:
-  name: "output"
-  output_path: "./"
+  # Name used for output files (xlsx and html)
+  name: "MyProject"
+  # Directory where output files will be saved
+  output_path: "./output/"
 
 input:
-  gpx_file: "Tag1.gpx"
+  # Path to the GPX file containing the track to analyze
+  gpx_file: "track.gpx"
 
 search:
+  # Search radius in kilometers around each track segment
   radius_km: 5
-  step_km: null   # wird automatisch berechnet (60% von radius_km)
+  # Distance between Overpass query points along the track (in km)
+  # Set to null to auto-calculate as 60% of radius_km (highly suggested)
+  step_km: null
+  # OSM tags to search for (include filters)
   include:
     - "tourism=camp_site"
+  # OSM tags to exclude from results (exclude filters)
   exclude:
     - "tents=no"
     - "camp_site:tent=no"
 
 map:
+  # Initial zoom level for the Folium map (1-18)
   zoom_start: 10
+  # Color of the track line on the map
   track_color: "blue"
+  # Marker colors based on distance to track
   marker_colors:
+    # Color for objects within 2 km of track
     near: "green"
+    # Color for objects 2-5 km from track
     mid: "orange"
+    # Color for objects more than 5 km from track
     far: "red"
 
 overpass:
+  # Number of retry attempts for failed Overpass API requests
   retries: 5
+  # List of Overpass API endpoints (multiple servers for redundancy)
   servers:
     - "https://overpass-api.de/api/interpreter"
-    - "https://overpass.kumi.systems/api/interpreter"
+    - "https://overpass.private.coffee/api/interpreter"
     - "https://lz4.overpass-api.de/api/interpreter"
 
+# Path to the presets file containing predefined filter profiles (don´t change)
 presets_file: "presets.yaml"

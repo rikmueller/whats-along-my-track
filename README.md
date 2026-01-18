@@ -1,6 +1,6 @@
 # osm_finder
 
-osm_finder is a modular Python tool that analyzes OpenStreetMap data along a GPX track.  
+osm_finder is a modular Python tool that analyzes OpenStreetMap POIs along a GPX track.  
 It combines GPX processing, Overpass API queries, flexible OSM filters, Excel export, and interactive Folium maps.
 
 ## Features
@@ -35,7 +35,7 @@ python -m venv osm_finder
 osm_finder\Scripts\activate
 ```
 
-Your prompt should now show `(venv)` at the beginning, indicating the virtual environment is active.
+Your prompt should now show `(osm_finder)` at the beginning, indicating the virtual environment is active.
 
 ### Install dependencies
 ```bash
@@ -55,37 +55,54 @@ All default settings are stored in `config.yaml`.
 
 ```yaml
 project:
-  name: MyProject
-  output_path: ./
+  # Name used for output files (xlsx and html)
+  name: "MyProject"
+  # Directory where output files will be saved
+  output_path: "./output/"
 
 input:
-  gpx_file: track.gpx
+  # Path to the GPX file containing the track to analyze
+  gpx_file: "track.gpx"
 
 search:
+  # Search radius in kilometers around each track segment
   radius_km: 5
+  # Distance between Overpass query points along the track (in km)
+  # Set to null to auto-calculate as 60% of radius_km (highly suggested)
   step_km: null
+  # OSM tags to search for (include filters)
   include:
-    - tourism=camp_site
+    - "tourism=camp_site"
+  # OSM tags to exclude from results (exclude filters)
   exclude:
-    - tents=no
-    - camp_site:tent=no
+    - "tents=no"
+    - "camp_site:tent=no"
 
 map:
+  # Initial zoom level for the Folium map (1-18)
   zoom_start: 10
-  track_color: blue
+  # Color of the track line on the map
+  track_color: "blue"
+  # Marker colors based on distance to track
   marker_colors:
-    near: green
-    mid: orange
-    far: red
+    # Color for objects within 2 km of track
+    near: "green"
+    # Color for objects 2-5 km from track
+    mid: "orange"
+    # Color for objects more than 5 km from track
+    far: "red"
 
 overpass:
+  # Number of retry attempts for failed Overpass API requests
   retries: 5
+  # List of Overpass API endpoints (multiple servers for redundancy)
   servers:
-    - https://overpass-api.de/api/interpreter
-    - https://overpass.kumi.systems/api/interpreter
-    - https://lz4.overpass-api.de/api/interpreter
+    - "https://overpass-api.de/api/interpreter"
+    - "https://overpass.private.coffee/api/interpreter"
+    - "https://lz4.overpass-api.de/api/interpreter"
 
-presets_file: presets.yaml
+# Path to the presets file containing predefined filter profiles (don´t change)
+presets_file: "presets.yaml"
 ```
 
 ## Presets
