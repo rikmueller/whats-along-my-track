@@ -35,6 +35,12 @@ python -m venv venv_osm_finder
 venv_osm_finder\Scripts\activate
 ```
 
+> **Troubleshooting on Windows:** If you get an execution policy error, run this command in PowerShell:
+> ```powershell
+> Set-ExecutionPolicy -Scope CurrentUser -ExecutionPolicy RemoteSigned
+> ```
+> Then try activating the virtual environment again.
+
 Your prompt should now show `(venv_osm_finder)` at the beginning, indicating the virtual environment is active.
 
 ### Install dependencies
