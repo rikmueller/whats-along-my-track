@@ -1,7 +1,8 @@
 # AlongGPX
 
-AlongGPX is a modular Python tool that analyzes OpenStreetMap POIs along a GPX track.  
-It combines GPX processing, Overpass API queries, flexible OSM filters, Excel export, and interactive Folium maps.
+**Find OpenStreetMap POIs along GPX tracks. Plan trips smarter: campsites, water sources, shelters—all organized by distance from your route.**
+
+AlongGPX analyzes your GPX track and queries OpenStreetMap for everything you're looking for nearby. Results export to Excel and interactive maps.
 
 ## 📁 Project Structure
 
@@ -40,37 +41,20 @@ AlongGPX/
 
 ## 🚀 Quick Start
 
-### Option 1: CLI Mode (Local)
+**CLI:** `pip install -r requirements-base.txt && python3 cli/main.py --preset camp_basic`
 
-```bash
-# Install dependencies
-pip install -r requirements-base.txt
+**Docker:** `cd docker && docker-compose up -d`
 
-# Run with defaults
-python3 cli/main.py
-
-# With custom settings
-python3 cli/main.py --gpx-file ./data/input/track.gpx --radius-km 10 --preset camp_basic
-```
-
-### Option 2: Web API (Docker)
-
-```bash
-# Start the web service
-cd docker
-docker-compose up -d
-
-# Test the API
-curl -F "file=@../data/input/track.gpx" \
-     -F "project_name=MyTrip" \
-     http://localhost:5000/api/process
-```
+👉 See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup.
 
 ## 📖 Documentation
 
-- **[Quick Start Guide](docs/QUICKSTART.md)** - Get up and running quickly
-- **[Docker Deployment](docs/DOCKER.md)** - Web API deployment guide
-- **[Implementation Details](docs/IMPLEMENTATION.md)** - Architecture and design decisions
+| Document | Purpose |
+|----------|----------|
+| [QUICKSTART.md](docs/QUICKSTART.md) | Install, run CLI or Docker (5 min) |
+| [DOCKER.md](docs/DOCKER.md) | Web API endpoints, config, troubleshooting |
+| [config.yaml](config.yaml) | All configuration options |
+| [presets.yaml](presets.yaml) | Available filter presets |
 
 ## Use Case
 

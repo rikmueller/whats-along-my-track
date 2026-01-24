@@ -1,76 +1,141 @@
-# AlongGPX: Quick Start Guide
+# Quick Start Guide
 
-Get up and running with the CLI or Dockerized web API using the new `data/` layout.
+Get AlongGPX running in 5 minutes.
 
-## Option 1: Run Locally (CLI)
+## Prerequisites
+
+**CLI:** Python 3.8+ (test: `python3 --version`)  
+**Docker:** Docker + Docker Compose (test: `docker --version`)
+
+## Option 1: CLI (Local)
+
+### 1. Install
 ```bash
-# From repo root
+cd /home/rik/AlongGPX
 pip install -r requirements-base.txt
-
-# Run with config.yaml defaults
-python3 cli/main.py
-
-# Override inputs/filters
-python3 cli/main.py --gpx-file ./data/input/track.gpx --radius-km 10 --project-name MyTrip
 ```
 
-## Option 2: Run as Docker Web API
+### 2. Run
+```bash
+python3 cli/main.py --preset camp_basic
+```
+
+Your output files are in `data/output/`.
+
+### 3. Customize
+```bash
+# Different search radius
+python3 cli/main.py --radius-km 10 --preset camp_basic
+
+# Multiple filters
+python3 cli/main.py \
+  --preset camp_basic \
+  --include amenity=drinking_water \
+  --include amenity=shelter \
+  --radius-km 5 \
+  --project-name MyTrip
+```
+
+See `python3 cli/main.py --help` for all options.
+
+---
+
+## Option 2: Docker (Web API)
+
+### 1. Start
 ```bash
 cd docker
 docker-compose up -d
+```
 
-# Health check
+### 2. Check Health
+```bash
 curl http://localhost:5000/health
+```
 
-# Process a GPX file mounted from ../data/input
+Response: `{"status": "healthy", "service": "AlongGPX"}`
+
+### 3. Process GPX
+```bash
 curl -F "file=@../data/input/track.gpx" \
      -F "project_name=MyTrip" \
      -F "radius_km=5" \
      http://localhost:5000/api/process
 ```
 
-## File Structure
-
-```
-AlongGPX/
-├── cli/                    # CLI entry + .env.example
-├── core/                   # Shared pipeline modules
-├── data/
-│   ├── input/              # GPX files (default)
-│   └── output/             # Generated Excel/HTML
-├── docker/                 # Dockerized web API
-│   ├── app.py
-│   ├── docker-compose.yml
-│   ├── Dockerfile
-│   ├── requirements-web.txt
-│   └── .env.example
-├── docs/                   # Guides (this file, DOCKER.md, IMPLEMENTATION.md)
-├── config.yaml             # Default config (uses data/ paths)
-├── presets.yaml            # Filter presets
-├── requirements-base.txt   # CLI dependencies
-└── README.md
+Response:
+```json
+{
+  "success": true,
+  "excel_file": "MyTrip_20260124_120000.xlsx",
+  "html_file": "MyTrip_20260124_120000.html",
+  "rows_count": 42,
+  "track_length_km": 125.5
+}
 ```
 
-## Testing
+### 4. View Results
+Files are in `data/output/`.
+
+---
+
+## Configuration
+
+### CLI: Via Environment (.env)
+Create `cli/.env`:
+```
+ALONGGPX_RADIUS_KM=8
+ALONGGPX_BATCH_KM=50
+ALONGGPX_TIMEZONE=Europe/Berlin
+```
+
+### CLI: Via Command Line
+```bash
+python3 cli/main.py --radius-km 10 --preset drinking_water
+```
+
+### Docker: Via docker-compose.yml
+Edit `docker/docker-compose.yml` environment section:
+```yaml
+environment:
+  - ALONGGPX_RADIUS_KM=5
+  - ALONGGPX_BATCH_KM=50
+```
+
+### Both: Via config.yaml
+Edit `config.yaml` for permanent defaults.
+
+---
+
+## Common Filters (Presets)
 
 ```bash
-# 1. CLI run with explicit GPX
-python3 cli/main.py --gpx-file ./data/input/track.gpx --radius-km 5
-
-# 2. Web API health
-cd docker && docker-compose up -d
-curl http://localhost:5000/health
-
-# 3. Web API upload
-curl -F "file=@../data/input/track.gpx" \
-     -F "project_name=TestRun" \
-     http://localhost:5000/api/process
-
-# 4. Logs
-docker-compose logs -f
+python3 cli/main.py --preset camp_basic        # Campsites (tents allowed)
+python3 cli/main.py --preset accommodation     # Hotels, B&Bs, guest houses
+python3 cli/main.py --preset drinking_water    # Water sources
+python3 cli/main.py --preset shelters          # Emergency shelters
 ```
 
-## Configuration Priority (High → Low)
-- Web API form parameters
-- Environment variables (`ALONGGPX_*`)
-- config.yaml defaults (uses `./data/input/track.gpx` and `./data/output/`)
+Create custom filters in `presets.yaml`.
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| CLI won't start | Run from repo root: `cd /home/rik/AlongGPX` |
+| No results | Check filter syntax: `key=value`, verify OSM data at [overpass-turbo.eu](https://overpass-turbo.eu/) |
+| Docker won't build | `docker system prune -f` then retry |
+| Port 5000 in use | Change in `docker/docker-compose.yml`: `ports: ["5001:5000"]` |
+
+See [DOCKER.md](DOCKER.md) for Docker-specific issues.
+
+---
+
+## Next Steps
+
+- Adjust `config.yaml` for your preferred defaults
+- Add custom GPX files to `data/input/`
+- Create custom filter presets in `presets.yaml`
+- Read [DOCKER.md](DOCKER.md) for web API details

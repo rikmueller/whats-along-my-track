@@ -1,83 +1,193 @@
-# AlongGPX Docker Containerization Guide
+# Docker Guide
 
-This document describes how to build and run AlongGPX as a Docker container, supporting both CLI and web app modes.
+Deploy AlongGPX as a web API container.
 
 ## Quick Start
 
 ### Prerequisites
 - Docker >= 20.10
 - Docker Compose >= 1.29
-- 50MB max upload file size (configurable in `web.py`)
 
-### Build and Run Web App
+### Run
 ```bash
 cd docker
-
-# Build the image
-docker-compose build
-
-# Start the container
 docker-compose up -d
+```
 
-# Check health
+Health check:
+```bash
 curl http://localhost:5000/health
-
-# View logs
-docker-compose logs -f alonggpx
 ```
 
-The web app is now available at `http://localhost:5000/api/process`.
+---
 
-## Repository Structure
+## Web API Endpoints
 
-```
-.
-├── cli/                     # CLI entrypoint and .env.example
-├── core/                    # Pipeline modules
-├── data/
-│   ├── input/               # GPX input files
-│   └── output/              # Generated results (Excel, HTML)
-├── docker/                  # Web API (Flask) + compose/Dockerfile
-│   ├── app.py
-│   ├── docker-compose.yml
-│   ├── Dockerfile
-│   └── requirements-web.txt
-├── config.yaml              # Default configuration
-├── presets.yaml             # Filter presets
-├── requirements-base.txt    # Core dependencies
-└── README.md
-```
+### POST /api/process
+Upload and process a GPX file.
 
-## Execution Modes
-
-### 1. CLI Mode (Traditional)
-Run locally without Docker:
+**Request:**
 ```bash
-# Install dependencies
-pip install -r requirements-base.txt
-
-# Run with defaults (config.yaml)
-python3 cli/main.py
-
-# Override with CLI arguments
-python3 cli/main.py --gpx-file ./data/input/route.gpx --radius-km 10 --project-name MyTrip
-```
-
-### 2. Web App Mode (Docker Container)
-REST API for processing GPX files:
-```bash
-# Start container
-docker-compose up -d
-
-# Upload GPX and process
-curl -F "file=@route.gpx" \
+curl -F "file=@track.gpx" \
      -F "project_name=MyTrip" \
      -F "radius_km=5" \
      http://localhost:5000/api/process
+```
 
-# Response:
-# {
-#   "success": true,
+**Parameters:**
+- `file` (required): GPX file
+- `project_name` (optional): Output filename prefix
+- `radius_km` (optional): Search radius in km
+- `step_km` (optional): Distance between query points
+- `include` (optional): Include filter (e.g., `amenity=drinking_water`)
+- `exclude` (optional): Exclude filter (e.g., `tents=no`)
+
+**Response:**
+```json
+{
+  "success": true,
+  "excel_file": "MyTrip_20260124_120000.xlsx",
+  "html_file": "MyTrip_20260124_120000.html",
+  "excel_path": "/app/data/output/MyTrip_20260124_120000.xlsx",
+  "html_path": "/app/data/output/MyTrip_20260124_120000.html",
+  "rows_count": 42,
+  "track_length_km": 125.5
+}
+```
+
+### GET /health
+Health check endpoint.
+
+**Response:**
+```json
+{"status": "healthy", "service": "AlongGPX"}
+```
+
+---
+
+## Configuration
+
+### Method 1: Environment Variables (.env)
+Create `docker/.env`:
+```
+FLASK_ENV=production
+ALONGGPX_PROJECT_NAME=WebProject
+ALONGGPX_RADIUS_KM=5
+ALONGGPX_BATCH_KM=50
+ALONGGPX_OVERPASS_RETRIES=3
+ALONGGPX_TIMEZONE=Europe/Berlin
+```
+
+### Method 2: docker-compose.yml
+Edit environment section:
+```yaml
+environment:
+  - ALONGGPX_RADIUS_KM=5
+  - ALONGGPX_BATCH_KM=50
+```
+
+### Method 3: Mount config.yaml
+Uncomment in `docker-compose.yml`:
+```yaml
+volumes:
+  - ../config.yaml:/app/config.yaml:ro
+```
+
+**Priority (high → low):**
+1. Web API form parameters
+2. Environment variables (docker/.env)
+3. config.yaml defaults
+
+---
+
+## Supported Environment Variables
+
+**Project:**
+- `ALONGGPX_PROJECT_NAME` – Output filename prefix
+- `ALONGGPX_OUTPUT_PATH` – Output directory (default: `/app/data/output`)
+- `ALONGGPX_TIMEZONE` – Timezone for timestamps
+
+**Search:**
+- `ALONGGPX_RADIUS_KM` – Search radius (default: 5)
+- `ALONGGPX_STEP_KM` – Distance between query points
+- `ALONGGPX_BATCH_KM` – Overpass batch size (default: 50)
+
+**Overpass:**
+- `ALONGGPX_OVERPASS_RETRIES` – Retry attempts (default: 3)
+
+**Flask:**
+- `FLASK_ENV` – production or development
+- `FLASK_PORT` – Port (default: 5000)
+
+---
+
+## Build & Run Manually
+
+```bash
+cd docker
+docker build -t alonggpx:latest ..
+docker run -p 5000:5000 \
+  -v "$(pwd)/../data/input:/app/data/input" \
+  -v "$(pwd)/../data/output:/app/data/output" \
+  alonggpx:latest
+```
+
+---
+
+## Troubleshooting
+
+| Problem | Solution |
+|---------|----------|
+| Port 5000 in use | Change in `docker-compose.yml`: `ports: ["5001:5000"]` |
+| Upload fails | Check `ALONGGPX_OUTPUT_PATH` has write permissions; max file size is 50MB |
+| No results | Verify filter syntax (`key=value`), check [overpass-turbo.eu](https://overpass-turbo.eu/) |
+| Overpass timeout | Increase `ALONGGPX_BATCH_KM` to reduce API calls |
+| Container won't start | Check logs: `docker-compose logs` |
+
+---
+
+## Production Deployment
+
+### Use Gunicorn
+Edit `docker/Dockerfile`:
+```dockerfile
+RUN pip install gunicorn
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "docker.app:app"]
+```
+
+Rebuild: `docker-compose up -d --build`
+
+### Use Nginx Reverse Proxy
+```nginx
+upstream alonggpx {
+    server localhost:5000;
+}
+
+server {
+    listen 80;
+    server_name gpx.example.com;
+
+    location / {
+        proxy_pass http://alonggpx;
+        client_max_body_size 50M;
+    }
+}
+```
+
+---
+
+## Logs & Debugging
+
+```bash
+# View logs
+docker-compose logs -f
+
+# Real-time logs from container
+docker logs -f alonggpx-web
+
+# Check container status
+docker ps | grep alonggpx
+```
 #   "excel_file": "MyTrip_20260124_120000.xlsx",
 #   "html_file": "MyTrip_20260124_120000.html",
 #   "excel_path": "/app/data/output/MyTrip_20260124_120000.xlsx",
