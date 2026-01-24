@@ -98,33 +98,40 @@ curl -F "file=@track.gpx" \
 
 ## Configuration
 
-Docker uses the same configuration as CLI. Set values via environment variables (highest priority), then `config.yaml` defaults.
+Docker automatically mounts `../config.yaml` from the repo root. Configuration uses this hierarchy (highest → lowest):
 
-### Method 1: .env File (Recommended)
-Create `docker/.env`:
+1. **Environment variables** (optional) – override specific values
+2. **config.yaml** (default, auto-mounted) – persistent settings
+
+### Default: Use config.yaml
+
+Edit `config.yaml` for permanent defaults, then restart:
 ```bash
-FLASK_ENV=production
-ALONGGPX_RADIUS_KM=5
-ALONGGPX_BATCH_KM=50
-ALONGGPX_TIMEZONE=Europe/Berlin
+docker-compose up -d
 ```
 
-### Method 2: docker-compose.yml
+### Optional: Override with Environment Variables
+
+For temporary overrides (without editing config.yaml), set environment variables.
+
+**Method A: .env file** (recommended for multiple overrides)
+Create `docker/.env`:
+```bash
+ALONGGPX_RADIUS_KM=8
+ALONGGPX_BATCH_KM=60
+ALONGGPX_TIMEZONE=America/New_York
+```
+
+**Method B: docker-compose.yml**
 ```yaml
 services:
   alonggpx:
     environment:
-      - ALONGGPX_RADIUS_KM=5
-      - ALONGGPX_BATCH_KM=50
+      - ALONGGPX_RADIUS_KM=8
+      - ALONGGPX_BATCH_KM=60
 ```
 
-### Method 3: Mount config.yaml
-```yaml
-volumes:
-  - ../config.yaml:/app/config.yaml:ro
-```
-
-**All environment variables:**
+**All available environment variables:**
 
 | Variable | Purpose | Default |
 |----------|---------|---------|
@@ -243,23 +250,6 @@ server {
 }
 ```
 
-
----
-
-## Architecture & Design
-
-**Multi-stage Docker build:**
-- Base stage: Installs dependencies, builds wheels
-- Production stage: Copies only runtime (smaller image ~300MB)
-
-**Security:**
-- Runs as non-root user (`alonggpx`, UID 1000)
-- Input directory is read-only
-- No hardcoded credentials
-
-**Health checks:**
-- Polls `/health` endpoint every 30s
-- Fails fast if container becomes unhealthy
 
 ---
 

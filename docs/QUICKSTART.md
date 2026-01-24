@@ -15,9 +15,28 @@ Get AlongGPX running in 5 minutes. Choose your path: **CLI** (local machine) or 
 
 ## Path 1: CLI (Local Machine)
 
-### Step 1: Install
+### Step 0: Create Virtual Environment (Recommended)
+
+Keep your system Python clean by using a virtual environment:
+
+**On Linux/macOS:**
 ```bash
 cd AlongGPX
+python3 -m venv venv
+source venv/bin/activate
+```
+
+**On Windows (PowerShell):**
+```powershell
+cd AlongGPX
+python -m venv venv
+venv\Scripts\Activate.ps1
+```
+
+Your prompt should now show `(venv)` prefix.
+
+### Step 1: Install Dependencies
+```bash
 pip install -r requirements-base.txt
 ```
 

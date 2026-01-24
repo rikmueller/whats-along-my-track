@@ -4,7 +4,7 @@
 
 ## 🎯 What It Does
 
-You provide a GPX track (from your bike computer, phone, or mapping app). AlongGPX queries OpenStreetMap for nearby amenities and generates:
+You provide a GPX track (from your bike computer, phone, or mapping app). AlongGPX queries OpenStreetMap for everything you're looking for nearby:
 - **Excel spreadsheet** with names, contact info, opening hours, distances
 - **Interactive map** with color-coded markers showing each POI type
 
@@ -50,30 +50,12 @@ AlongGPX/
 └── README.md              # This file
 ```
 
-## 🚀 Quick Start
+## Configuration Files
 
-**CLI:** `pip install -r requirements-base.txt && python3 cli/main.py --preset camp_basic`
-
-**Docker:** `cd docker && docker-compose up -d`
-
-👉 See [QUICKSTART.md](docs/QUICKSTART.md) for detailed setup.
-
-## 📖 Documentation
-
-| Document | Purpose |
-|----------|----------|
-| [QUICKSTART.md](docs/QUICKSTART.md) | Install, run CLI or Docker (5 min) |
-| [DOCKER.md](docs/DOCKER.md) | Web API endpoints, config, troubleshooting |
-| [config.yaml](config.yaml) | All configuration options |
-| [presets.yaml](presets.yaml) | Available filter presets |
-
-## Use Case
-
-You have a GPX track (from your GPS device, mapping app, or drawn on a map). You want to find specific amenities, services, or landmarks near your planned route. Instead of manually searching the map for each area, AlongGPX automatically finds everything for you and creates:
-- An Excel spreadsheet with details (name, contact info, distance from track, etc.)
-- An interactive map showing all results with color-coded markers
-
-Perfect for trip planning, hiking, bikepacking, road trips, or any adventure where you want to know what's nearby!
+| File | Purpose |
+|------|---------|
+| [config.yaml](config.yaml) | Default settings (radius, step distance, Overpass servers) |
+| [presets.yaml](presets.yaml) | Pre-built filter profiles (camp_basic, drinking_water, shelters, etc.) |
 
 ## Features
 - Read GPX tracks and compute total distance
@@ -87,12 +69,6 @@ Perfect for trip planning, hiking, bikepacking, road trips, or any adventure whe
 - Accurate WGS84 geodesic distance calculations
 - **CLI and Web API modes** for different use cases
 
-## Configuration Files
-
-| File | Purpose |
-|------|---------|
-| [config.yaml](config.yaml) | Default settings (radius, step distance, Overpass servers) |
-| [presets.yaml](presets.yaml) | Pre-built filter profiles (camp_basic, drinking_water, shelters, etc.) |
 
 ## Architecture
 
@@ -102,15 +78,6 @@ Perfect for trip planning, hiking, bikepacking, road trips, or any adventure whe
 3. Filter results by include/exclude rules
 4. Calculate geodesic distance to track (WGS84 ellipsoid)
 5. Export to Excel + interactive Folium map
-
-**Design highlights:**
-- Shared pipeline in `core/` (used by CLI and web API)
-- CLI entry: `cli/main.py` with argument parsing
-- Web API: `docker/app.py` (Flask)
-- Config hierarchy: CLI args > env vars > config.yaml
-- Accurate distance: Always WGS84 geodesic (not Euclidean)
-
-
 
 ## Contributing
 
