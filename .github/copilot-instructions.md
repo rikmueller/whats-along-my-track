@@ -5,8 +5,8 @@ AlongGPX finds OpenStreetMap POIs along GPX tracks using Overpass API queries, t
 
 ## Architecture & Data Flow
 
-**Pipeline (see [main.py](../main.py)):**
-1. **Config**: CLI args ([cli.py](../core/cli.py)) → merge with YAML ([config.py](../core/config.py))
+**Pipeline (run via CLI or Docker web API):**
+1. **Config**: CLI args ([cli.py](../core/cli.py)) + env vars → merge with YAML ([config.py](../core/config.py))
 2. **Presets**: Load [presets.yaml](../presets.yaml) → apply to filters ([presets.py](../core/presets.py))
 3. **GPX**: Parse GPX → geodesic distance calculations with `pyproj.Geod(ellps="WGS84")` ([gpx_processing.py](../core/gpx_processing.py))
 4. **Overpass**: Batched queries along track with configurable `batch_km` ([overpass.py](../core/overpass.py))
@@ -18,6 +18,43 @@ AlongGPX finds OpenStreetMap POIs along GPX tracks using Overpass API queries, t
 - **Batching**: Multiple search circles combined per Overpass call (controlled by `config.yaml:overpass.batch_km`)
 - **Auto step_km**: Defaults to 60% of `radius_km` if not set
 - **Filter precedence**: CLI args override `config.yaml` base filters entirely (not additive)
+- **Reusable pipeline**: `run_pipeline()` in [cli/main.py](../cli/main.py) is callable from CLI or web app
+
+## Project Structure
+
+```
+AlongGPX/
+├── cli/                     # CLI entry point
+│   ├── main.py             # Exports run_pipeline() + CLI entry
+│   └── .env.example        # CLI env vars (output_path, gpx_file)
+├── core/                    # Shared pipeline modules (100% DRY)
+│   ├── cli.py              # Argument parsing
+│   ├── config.py           # YAML + env var + CLI merging
+│   ├── presets.py          # Filter preset loading
+│   ├── gpx_processing.py   # GPX parsing & metrics
+│   ├── overpass.py         # Overpass API queries
+│   ├── filtering.py        # Result filtering & distance calc
+│   ├── export.py           # Excel export
+│   └── folium_map.py       # Interactive map generation
+├── docker/                  # Dockerized web API
+│   ├── app.py              # Flask REST API
+│   ├── docker-compose.yml  # Container orchestration
+│   ├── Dockerfile          # Multi-stage build (Python 3.11)
+│   ├── requirements-web.txt # Flask + base deps
+│   └── .env.example        # Web env vars (container paths)
+├── data/
+│   ├── input/              # GPX files (mounted read-only in Docker)
+│   └── output/             # Generated Excel/HTML (timestamped)
+├── docs/                    # User documentation
+│   ├── QUICKSTART.md       # Get running quickly
+│   ├── DOCKER.md           # Docker deployment guide
+│   ├── IMPLEMENTATION.md   # Technical implementation summary
+│   └── REORGANIZATION.md   # Project structure changes
+├── config.yaml             # Shared defaults (input/output paths use data/)
+├── presets.yaml            # Filter presets (camp_basic, drinking_water, etc.)
+├── requirements-base.txt   # Core dependencies (CLI + shared)
+└── README.md               # Project overview
+```
 
 ## Critical Conventions
 
@@ -42,31 +79,47 @@ _, _, distance_m = geod.inv(lon1, lat1, lon2, lat2)
 track_line = LineString(track_points_m)  # EPSG:3857
 ```
 
-## Configuration Hierarchy
-1. [config.yaml](../config.yaml) - Base defaults
-2. [presets.yaml](../presets.yaml) - Reusable filter profiles
-3. CLI args - Override everything (`--preset`, `--include`, `--exclude`)
+## Configuration Hierarchy (Highest → Lowest)
 
-**Important**: When ANY CLI filter args are provided (`--preset`, `--include`, `--exclude`), `config.yaml:search.include/exclude` are ignored ([presets.py](../core/presets.py):L30-36).
+1. **Web API form parameters** (e.g., `-F "radius_km=10"`)
+2. **Environment variables** (e.g., `ALONGGPX_RADIUS_KM=5`)
+3. **config.yaml defaults** (base configuration)
+
+**Important**: When ANY CLI filter args provided (`--preset`, `--include`, `--exclude`), `config.yaml:search.include/exclude` are ignored ([presets.py](../core/presets.py):L30-36).
 
 ## Development Workflows
 
-### Running the Tool
+### Running CLI Locally
 ```bash
-# Basic (uses config.yaml)
-python3 main.py
+# From repo root with defaults
+python3 cli/main.py
 
-# With presets
-python3 main.py --preset camp_basic --include amenity=drinking_water
+# With custom GPX and filters
+python3 cli/main.py --gpx-file ./data/input/myroute.gpx --radius-km 10 --preset camp_basic
 
-# Full override
-python3 main.py --gpx-file route.gpx --radius-km 10 --project-name MyTrip
+# With environment overrides
+export ALONGGPX_RADIUS_KM=8
+python3 cli/main.py
+```
+
+### Running Docker Web API
+```bash
+cd docker
+docker-compose up -d           # Start container
+curl http://localhost:5000/health  # Health check
+
+# Upload and process GPX
+curl -F "file=@../data/input/track.gpx" \
+     -F "project_name=MyTrip" \
+     -F "radius_km=5" \
+     http://localhost:5000/api/process
 ```
 
 ### Testing Changes
 - No automated tests currently exist
 - Manual validation: Run with `./data/input/track.gpx` → verify Excel columns + map markers
 - Check Overpass batching logs: `🔍 Querying X.Xkm track with Y batched Overpass calls`
+- Docker logs: `docker-compose logs -f` from docker/ directory
 
 ### Adding New Presets
 Edit [presets.yaml](../presets.yaml):
@@ -74,24 +127,69 @@ Edit [presets.yaml](../presets.yaml):
 my_preset:
   include:
     - "amenity=restaurant"
+    - "amenity=bar"
   exclude:
-    - "diet:vegan=only"  # Example exclusion
+    - "diet:vegan=only"
 ```
+
+Then use: `python3 cli/main.py --preset my_preset`
 
 ## Common Gotchas
 
-1. **Filter order matters**: Marker colors assigned by include filter rank (Filter 1=red, Filter 2=orange, see [config.yaml](../config.yaml):L28-38)
-2. **Overpass timeouts**: Increase `batch_km` to reduce queries, or decrease for dense areas ([config.yaml](../config.yaml):L53)
+1. **Filter order matters**: Marker colors assigned by include filter rank (Filter 1=red, Filter 2=orange)
+2. **Overpass timeouts**: Increase `batch_km` in config.yaml to reduce queries, or decrease for dense areas
 3. **Empty results**: Check filter syntax (`key=value`), verify OSM data exists via [overpass-turbo.eu](https://overpass-turbo.eu/)
 4. **Duplicate POIs**: Deduplication by OSM ID in [overpass.py](../core/overpass.py):L126-130
+5. **CLI from subdirectory**: If running `python3 cli/main.py` from cli/ directory, config.yaml must exist in parent (fixed by resolving to repo root)
+6. **Docker volume mounts**: Container expects `/app/data/input` and `/app/data/output` (mapped from `../data/{input,output}`)
 
 ## External Dependencies
 - **Overpass API**: Multiple servers configured ([config.yaml](../config.yaml):L55-57), auto-retries with exponential backoff
 - **OSM tag reference**: See [wiki.openstreetmap.org/wiki/Map_features](https://wiki.openstreetmap.org/wiki/Map_features)
 - **GPX format**: Standard GPS exchange format (parsed via `gpxpy` library)
+- **Docker**: Required for web API mode (Python 3.11-slim + Flask 3.0)
+
+## Environment Variables
+
+### CLI (.env in cli/ directory)
+```
+ALONGGPX_PROJECT_NAME=MyProject
+ALONGGPX_OUTPUT_PATH=../data/output/
+ALONGGPX_RADIUS_KM=5
+ALONGGPX_STEP_KM=3
+ALONGGPX_BATCH_KM=50
+ALONGGPX_TIMEZONE=Europe/Berlin
+```
+
+### Docker (.env in docker/ directory)
+```
+FLASK_ENV=production
+ALONGGPX_OUTPUT_PATH=/app/data/output
+ALONGGPX_RADIUS_KM=5
+ALONGGPX_BATCH_KM=50
+```
 
 ## File Organization
-- `core/` - Modular pipeline components (each file = 1 step)
-- `data/input/` - GPX files
-- `data/output/` - Generated Excel/HTML (timestamped: `ProjectName_YYYYMMDD_HHMMSS.xlsx`)
-- Root config files - User-facing configuration
+- **core/** - Modular pipeline components (each file = 1 step, no dependencies between)
+- **cli/** - Command-line entrypoint with config resolution
+- **docker/** - Flask web API + containerization
+- **data/input/** - GPX files for processing
+- **data/output/** - Generated Excel/HTML (timestamped: `ProjectName_YYYYMMDD_HHMMSS.{xlsx,html}`)
+- **docs/** - User-facing documentation and guides
+- **Root config files** - config.yaml, presets.yaml (shared between CLI and web)
+
+## Importing run_pipeline() from Web App
+```python
+import sys, os
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+from cli.main import run_pipeline
+
+result = run_pipeline(config, cli_presets=None, cli_include=None, cli_exclude=None)
+# Returns: {excel_path, html_path, dataframe, rows_count, track_length_km}
+```
+
+## Release & Git Workflow
+- Branch for features: `git checkout -b feature/description`
+- Commit with scope: `git commit -m "feat(docker): update compose volumes"`
+- Push to GitHub: `git push -u origin feature/description`
+- Open PR and request review before merging to main
