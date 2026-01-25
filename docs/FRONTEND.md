@@ -154,7 +154,7 @@ Thread-safe updates via `job_registry_lock` prevent race conditions.
 **Terminal 1 - Backend:**
 ```bash
 cd /home/rik/AlongGPX
-python3 docker/app.py
+python3 backend/app.py
 ```
 Flask listens on http://localhost:5000
 
@@ -208,7 +208,7 @@ docker-compose up
 2. Restart backend or reload page → dropdown auto-populates
 
 ### Adding a Filter Type
-1. Update `/api/config` response in `docker/app.py`
+1. Update `/api/config` response in `backend/app.py`
 2. Add input field in `SettingsForm.tsx`
 3. Pass via `/api/process` form data
 

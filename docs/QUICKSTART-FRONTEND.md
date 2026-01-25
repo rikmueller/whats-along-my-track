@@ -29,7 +29,7 @@ cd /home/rik/AlongGPX
 pip install -r docker/requirements-web.txt
 
 # Start Flask
-python3 docker/app.py
+python3 backend/app.py
 # Output: Running on http://0.0.0.0:5000
 ```
 
@@ -271,7 +271,7 @@ AlongGPX/
 - CSS variables defined in `web/src/index.css`
 
 ### Extending API
-- Add endpoints to `docker/app.py`
+- Add endpoints to `backend/app.py`
 - Add API client methods to `web/src/api.ts`
 - Create or update components as needed
 

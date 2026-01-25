@@ -77,7 +77,7 @@ AlongGPX/
 **Terminal 1 - Backend:**
 ```bash
 cd /home/rik/AlongGPX
-python3 docker/app.py
+python3 backend/app.py
 # Listen on http://localhost:5000
 ```
 

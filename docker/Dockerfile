@@ -18,7 +18,7 @@ RUN pip install --no-cache-dir -r requirements-web.txt
 # Copy application code (from build context root)
 COPY core ./core
 COPY cli ./cli
-COPY docker ./docker
+COPY backend ./backend
 COPY config.yaml ./config.yaml
 COPY presets.yaml ./presets.yaml
 
@@ -53,4 +53,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
 EXPOSE 5000
 
 # Run Flask app
-CMD ["python", "-m", "flask", "--app", "docker.app", "run", "--host", "0.0.0.0", "--port", "5000"]
+CMD ["python", "-m", "flask", "--app", "backend.app", "run", "--host", "0.0.0.0", "--port", "5000"]

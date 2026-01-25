@@ -131,7 +131,7 @@ docker-compose logs --timestamps
 ```dockerfile
 # Dockerfile snippet: use Gunicorn in production
 RUN pip install gunicorn
-CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "docker.app:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "backend.app:app"]
 ```
 Rebuild:
 ```bash

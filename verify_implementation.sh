@@ -8,7 +8,7 @@ echo ""
 
 # Check Python files
 echo "📋 Checking Python files..."
-python3 -m py_compile docker/app.py && echo "  ✓ docker/app.py syntax OK" || exit 1
+python3 -m py_compile backend/app.py && echo "  ✓ backend/app.py syntax OK" || exit 1
 python3 -m py_compile cli/main.py && echo "  ✓ cli/main.py syntax OK" || exit 1
 
 # Check web directory structure
@@ -59,7 +59,7 @@ echo "=========================================="
 echo ""
 echo "Next steps:"
 echo "1. Local testing:"
-echo "   Terminal 1: python3 docker/app.py"
+echo "   Terminal 1: python3 backend/app.py"
 echo "   Terminal 2: cd web && npm install && npm run dev"
 echo "   Browser: http://localhost:3000"
 echo ""

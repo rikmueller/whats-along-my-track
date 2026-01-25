@@ -21,7 +21,7 @@ Start with one of these based on your role:
 **Option A: Local Development**
 ```bash
 # Terminal 1
-cd /home/rik/AlongGPX && python3 docker/app.py
+cd /home/rik/AlongGPX && python3 backend/app.py
 
 # Terminal 2
 cd /home/rik/AlongGPX/web && npm install && npm run dev
