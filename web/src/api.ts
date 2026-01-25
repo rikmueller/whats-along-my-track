@@ -13,6 +13,7 @@ export interface ConfigResponse {
   presets: string[]
   presets_detail: {
     [key: string]: {
+      name?: string
       category?: string
       info?: string
       include: string[]

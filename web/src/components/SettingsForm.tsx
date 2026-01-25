@@ -105,7 +105,11 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
 
   // Sort presets within each category by name
   Object.keys(groupedPresets).forEach((category) => {
-    groupedPresets[category].sort()
+    groupedPresets[category].sort((a, b) => {
+      const nameA = config.presets_detail[a]?.name || a
+      const nameB = config.presets_detail[b]?.name || b
+      return nameA.localeCompare(nameB)
+    })
   })
 
   // Sort categories by predefined order
@@ -172,6 +176,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                 {presets.map((preset) => {
                   const presetDetail = config.presets_detail[preset]
                   const info = presetDetail?.info || ''
+                  const displayName = presetDetail?.name || preset
 
                   return (
                     <label key={preset} className="preset-chip">
@@ -182,7 +187,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
                           onChange={() => handlePresetToggle(preset)}
                           disabled={isProcessing}
                         />
-                        <span className="preset-name">{preset}</span>
+                        <span className="preset-name">{displayName}</span>
                       </div>
                       {info && <span className="preset-info">{info}</span>}
                     </label>
