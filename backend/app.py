@@ -17,10 +17,12 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from werkzeug.utils import secure_filename
 from flask import Flask, request, jsonify, send_file
+from flask_socketio import SocketIO, emit, join_room
 
 from cli.main import run_pipeline
 from core.config import load_yaml_config, load_env_config, merge_env_into_config
 from core.presets import load_presets
+from core.gpx_processing import load_gpx_track
 
 # Setup logging
 logging.basicConfig(
@@ -35,6 +37,25 @@ app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max file size
 app.config['UPLOAD_FOLDER'] = tempfile.gettempdir()
 app.config['JSON_SORT_KEYS'] = False
+
+# Initialize SocketIO (optional, graceful fallback to polling)
+try:
+    socketio = SocketIO(
+        app,
+        cors_allowed_origins="*",
+        async_mode="threading",
+        ping_timeout=60,
+        ping_interval=25,
+        engineio_logger=False,
+        logger=False,
+        transports=['polling']  # Force polling only, disable WebSocket
+    )
+    SOCKETIO_ENABLED = True
+    logger.info("SocketIO initialized for real-time updates (polling mode)")
+except Exception as e:
+    logger.warning(f"SocketIO initialization failed: {e}. Falling back to polling.")
+    socketio = None
+    SOCKETIO_ENABLED = False
 
 ALLOWED_EXTENSIONS = {'gpx'}
 
@@ -59,6 +80,7 @@ def create_job(project_name: str):
             'rows_count': None,
             'track_length_km': None,
             'error': None,
+            'geojson': None,
         }
     return job_id
 
@@ -68,6 +90,12 @@ def update_job(job_id: str, **kwargs):
     with job_registry_lock:
         if job_id in job_registry:
             job_registry[job_id].update(kwargs)
+            # Emit via SocketIO if available
+            if SOCKETIO_ENABLED and socketio:
+                try:
+                    socketio.emit('job_progress', job_registry[job_id], to=job_id, skip_sid=True)
+                except Exception as e:
+                    logger.debug(f"SocketIO emit failed: {e}")  # Non-blocking
 
 
 def get_job(job_id: str):
@@ -82,6 +110,7 @@ def process_gpx_async(job_id: str, config: dict, temp_gpx_path: str, form_preset
         update_job(job_id, state='processing', percent=int(percent), message=message)
 
     try:
+        track_points = load_gpx_track(temp_gpx_path)
         update_job(job_id, state='processing', percent=5, message='Starting pipeline...')
         result = run_pipeline(
             config,
@@ -90,6 +119,7 @@ def process_gpx_async(job_id: str, config: dict, temp_gpx_path: str, form_preset
             cli_exclude=form_excludes,
             progress_callback=on_progress,
         )
+        geojson = build_geojson(track_points, result.get('dataframe'))
         try:
             os.remove(temp_gpx_path)
         except Exception as e:
@@ -103,6 +133,7 @@ def process_gpx_async(job_id: str, config: dict, temp_gpx_path: str, form_preset
             html_file=os.path.basename(result['html_path']),
             rows_count=result['rows_count'],
             track_length_km=result['track_length_km'],
+            geojson=geojson,
         )
     except Exception as e:
         logger.error(f"Processing failed for job {job_id}: {e}", exc_info=True)
@@ -117,6 +148,49 @@ def process_gpx_async(job_id: str, config: dict, temp_gpx_path: str, form_preset
 
 def allowed_file(filename: str) -> bool:
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def build_geojson(track_points, df):
+    features = []
+    if track_points:
+        features.append(
+            {
+                'type': 'Feature',
+                'geometry': {
+                    'type': 'LineString',
+                    'coordinates': [(float(lon), float(lat)) for lon, lat in track_points],
+                },
+                'properties': {'featureType': 'track'},
+            }
+        )
+
+    if df is not None:
+        try:
+            for _, row in df.iterrows():
+                lon = float(row.get('lon'))
+                lat = float(row.get('lat'))
+                features.append(
+                    {
+                        'type': 'Feature',
+                        'geometry': {'type': 'Point', 'coordinates': [lon, lat]},
+                        'properties': {
+                            'featureType': 'poi',
+                            'id': row.get('Name') or '',
+                            'name': row.get('Name') or 'Unnamed',
+                            'matching_filter': row.get('Matching Filter', ''),
+                            'kilometers_from_start': row.get('Kilometers from start', 0),
+                            'distance_km': row.get('Distance from track (km)', 0),
+                            'website': row.get('Website', ''),
+                            'phone': row.get('Phone', ''),
+                            'opening_hours': row.get('Opening hours', ''),
+                            'tags': row.get('OSM Tags', ''),
+                        },
+                    }
+                )
+        except Exception as e:
+            logger.warning(f"Failed to convert dataframe to GeoJSON: {e}")
+
+    return {'type': 'FeatureCollection', 'features': features}
 
 
 @app.route('/health', methods=['GET'])
@@ -247,6 +321,43 @@ def download_html(filename):
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/job/<job_id>/geojson', methods=['GET'])
+def get_geojson(job_id: str):
+    job = get_job(job_id)
+    if not job:
+        return jsonify({'error': 'Job not found'}), 404
+    if not job.get('geojson'):
+        return jsonify({'error': 'GeoJSON not available yet'}), 404
+    return jsonify(job['geojson'])
+
+
+if SOCKETIO_ENABLED and socketio:
+    @socketio.on('connect')
+    def handle_connect():
+        logger.info(f"Client connected: {request.sid}")
+        emit('connected', {'ok': True})
+
+    @socketio.on('disconnect')
+    def handle_disconnect():
+        logger.info(f"Client disconnected: {request.sid}")
+
+    @socketio.on('subscribe_job')
+    def handle_subscribe(data):
+        job_id = data.get('job_id') if isinstance(data, dict) else None
+        if not job_id:
+            emit('error', {'message': 'No job_id provided'})
+            return
+        try:
+            join_room(job_id)
+            logger.info(f"Client {request.sid} subscribed to job {job_id}")
+            job = get_job(job_id)
+            if job:
+                emit('job_progress', job)
+        except Exception as e:
+            logger.error(f"Subscribe error: {e}", exc_info=True)
+            emit('error', {'message': str(e)})
+
+
 @app.errorhandler(413)
 def request_entity_too_large(error):
     return jsonify({'error': 'File too large (max 50MB)'}), 413
@@ -264,8 +375,27 @@ def internal_error(error):
 
 
 if __name__ == '__main__':
-    app.run(
-        host='0.0.0.0',
-        port=int(os.getenv('FLASK_PORT', 5000)),
-        debug=os.getenv('FLASK_ENV') == 'development'
-    )
+    port = int(os.getenv('FLASK_PORT', 5000))
+    debug = os.getenv('FLASK_ENV') == 'development'
+    logger.info(f"Starting Flask server on 0.0.0.0:{port} (debug={debug}, socketio={SOCKETIO_ENABLED})")
+    try:
+        if SOCKETIO_ENABLED and socketio:
+            socketio.run(
+                app,
+                host='0.0.0.0',
+                port=port,
+                debug=debug,
+                use_reloader=False,
+                allow_unsafe_werkzeug=True
+            )
+        else:
+            # Run without SocketIO (polling only)
+            app.run(
+                host='0.0.0.0',
+                port=port,
+                debug=debug,
+                use_reloader=False
+            )
+    except Exception as e:
+        logger.error(f"Server error: {e}", exc_info=True)
+        raise

@@ -1,0 +1,6 @@
+.dev-app {
+  position: relative;
+  min-height: 100vh;
+  background: #0b1220;
+  color: var(--color-text);
+}

@@ -36,6 +36,19 @@ export interface JobStatus {
   error: string | null
 }
 
+export interface GeoJsonFeature {
+  type: 'Feature'
+  geometry:
+    | { type: 'LineString'; coordinates: [number, number][] }
+    | { type: 'Point'; coordinates: [number, number] }
+  properties: Record<string, any>
+}
+
+export interface GeoJsonResponse {
+  type: 'FeatureCollection'
+  features: GeoJsonFeature[]
+}
+
 export const apiClient = {
   async getConfig(): Promise<ConfigResponse> {
     const response = await axios.get(`${API_BASE}/config`)
@@ -47,7 +60,8 @@ export const apiClient = {
     projectName: string,
     radiusKm: number,
     includes: string[],
-    excludes: string[]
+    excludes: string[],
+    presets: string[] = []
   ): Promise<{ job_id: string; status_url: string }> {
     const formData = new FormData()
     formData.append('file', file)
@@ -55,6 +69,7 @@ export const apiClient = {
     formData.append('radius_km', radiusKm.toString())
     includes.forEach((inc) => formData.append('include', inc))
     excludes.forEach((exc) => formData.append('exclude', exc))
+    presets.forEach((preset) => formData.append('preset', preset))
 
     const response = await axios.post(`${API_BASE}/process`, formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
@@ -64,6 +79,11 @@ export const apiClient = {
 
   async getJobStatus(jobId: string): Promise<JobStatus> {
     const response = await axios.get(`${API_BASE}/status/${jobId}`)
+    return response.data
+  },
+
+  async getGeoJson(jobId: string): Promise<GeoJsonResponse> {
+    const response = await axios.get(`${API_BASE}/job/${jobId}/geojson`)
     return response.data
   },
 

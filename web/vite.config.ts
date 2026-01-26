@@ -57,6 +57,11 @@ export default defineConfig(({ mode }) => {
           changeOrigin: true,
           rewrite: (path) => path,
         },
+        '/socket.io': {
+          target: 'http://localhost:5000',
+          changeOrigin: true,
+          ws: false,  // Disable WebSocket upgrade, use polling only
+        },
       },
     },
     build: {
