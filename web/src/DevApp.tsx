@@ -279,8 +279,6 @@ function DevApp() {
         onOpenPresetModal={openPresetModal}
         onOpenIncludeModal={() => openFilterModal('include')}
         onOpenExcludeModal={() => openFilterModal('exclude')}
-        tileSource={tileSource}
-        onTileChange={setTileId}
       />
 
       <PresetSelectionModal

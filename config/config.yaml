@@ -26,6 +26,20 @@ map:
   zoom_start: null  # Set via ALONGGPX_MAP_ZOOM_START in config/.env
   # Color of the track line on the map
   track_color: "blue"
+  # Base tile layers available in the downloadable Folium map (order defines default)
+  tile_layers:
+    - name: "OpenStreetMap"
+      tiles: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+      attr: "&copy; OpenStreetMap contributors"
+    - name: "OpenTopoMap"
+      tiles: "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png"
+      attr: "&copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap"
+    - name: "CyclOSM"
+      tiles: "https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png"
+      attr: "&copy; OpenStreetMap contributors | CyclOSM"
+  # Layer control placement/behavior in Folium map
+  layer_control_position: "topright"
+  layer_control_collapsed: false
   # Color palette for markers based on filter rank
   # Colors are assigned to filters in order: Filter1=palette[0], Filter2=palette[1], etc.
   marker_color_palette:

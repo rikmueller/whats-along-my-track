@@ -226,7 +226,7 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
         <label>Exclude Filters (OSM Tags)</label>
         <div className="filter-chips">
           {settings.excludes.map((filter, idx) => (
-            <div key={idx} className="filter-chip exclude">
+            <div key={idx} className="filter-chip">
               <span>{filter}</span>
               <button
                 onClick={() => handleRemoveFilter('exclude', idx)}

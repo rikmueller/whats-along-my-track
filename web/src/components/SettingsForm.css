@@ -154,11 +154,12 @@ input[type='number'] {
   border: 1px solid var(--color-primary);
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
+}
 
-  &.exclude {
-    background: #fee2e2;
-    border-color: var(--color-error);
-  }
+/* Keep include/exclude chips visually consistent (blue) */
+.filter-chip.exclude {
+  background: #dbeafe;
+  border-color: var(--color-primary);
 }
 
 .chip-remove {

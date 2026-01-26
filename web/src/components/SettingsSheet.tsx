@@ -1,15 +1,7 @@
 import { ChangeEvent, useEffect, useRef } from 'react'
 import { Sheet, MapPin } from 'lucide-react'
 import { JobStatus } from '../api'
-import { TileSource } from './InteractiveMap'
 import './SettingsSheet.css'
-
-const meterFormatter = new Intl.NumberFormat('en-US', { maximumFractionDigits: 1 })
-
-function formatDistance(km: number | null | undefined) {
-  if (km == null) return '—'
-  return `${meterFormatter.format(km)} km`
-}
 
 type Props = {
   open: boolean
@@ -31,8 +23,6 @@ type Props = {
   onOpenPresetModal: () => void
   onOpenIncludeModal: () => void
   onOpenExcludeModal: () => void
-  tileSource: TileSource
-  onTileChange: (id: string) => void
 }
 
 export default function SettingsSheet({
@@ -49,8 +39,6 @@ export default function SettingsSheet({
   onOpenPresetModal,
   onOpenIncludeModal,
   onOpenExcludeModal,
-  tileSource,
-  onTileChange,
 }: Props) {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -109,7 +97,7 @@ export default function SettingsSheet({
 
         <section className="sheet-section">
           <div className="section-head">
-            <h3>GPX-File</h3>
+            <h3>GPX-Track</h3>
             {selectedFile && <span className="chip">{selectedFile.name}</span>}
           </div>
           <label className="upload-tile">
@@ -205,7 +193,7 @@ export default function SettingsSheet({
           </div>
           <div className="chips">
             {settings.excludes.map((f) => (
-              <span key={f} className="chip muted-chip">
+              <span key={f} className="chip">
                 {f}
               </span>
             ))}

@@ -4,7 +4,15 @@ from folium.plugins import LocateControl
 from datetime import datetime
 
 
-def build_folium_map(df, track_points, output_path: str, project_name: str, map_cfg: dict, include_filters: list = None, timestamp: str = None) -> str:
+def build_folium_map(
+    df,
+    track_points,
+    output_path: str,
+    project_name: str,
+    map_cfg: dict,
+    include_filters: list = None,
+    timestamp: str = None,
+) -> str:
     """
     Generate a Folium map with track and markers.
     Marker colors are assigned based on filter rank.
@@ -16,21 +24,53 @@ def build_folium_map(df, track_points, output_path: str, project_name: str, map_
 
     start_lon, start_lat = track_points[0]
 
+    # Default tiles if none provided in config
+    tile_layers = map_cfg.get("tile_layers") or [
+        {
+            "name": "OpenStreetMap",
+            "tiles": "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            "attr": "&copy; OpenStreetMap contributors",
+        },
+        {
+            "name": "OpenTopoMap",
+            "tiles": "https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png",
+            "attr": "&copy; OpenStreetMap contributors, SRTM | Map style: &copy; OpenTopoMap",
+        },
+        {
+            "name": "CyclOSM",
+            "tiles": "https://{s}.tile-cyclosm.openstreetmap.fr/cyclosm/{z}/{x}/{y}.png",
+            "attr": "&copy; OpenStreetMap contributors | CyclOSM",
+        },
+    ]
+
     m = folium.Map(
         location=[start_lat, start_lon],
         zoom_start=map_cfg.get("zoom_start", 10),
+        tiles=None,  # We add explicit tile layers below so the user can switch
     )
+
+    for layer in tile_layers:
+        folium.TileLayer(
+            tiles=layer.get("tiles"),
+            name=layer.get("name", "Base"),
+            attr=layer.get("attr"),
+            overlay=False,
+            control=True,
+        ).add_to(m)
 
     # Add locate control button
     LocateControl(position='topleft').add_to(m)
 
-    # Track line
+    # Overlays for track and POIs so they appear in the layer control
+    track_group = folium.FeatureGroup(name="Track", overlay=True, show=True)
+    poi_group = folium.FeatureGroup(name="Points of Interest", overlay=True, show=True)
+
     folium.PolyLine(
         [(lat, lon) for lon, lat in track_points],
         color=map_cfg.get("track_color", "blue"),
         weight=3,
         opacity=0.8,
-    ).add_to(m)
+    ).add_to(track_group)
 
     # Get color palette and create filter-to-color mapping by rank
     color_palette = map_cfg.get("marker_color_palette", ["red", "orange", "purple", "green", "blue"])
@@ -61,7 +101,15 @@ def build_folium_map(df, track_points, output_path: str, project_name: str, map_
             location=[row["lat"], row["lon"]],
             popup=folium.Popup(popup_html, max_width=300),
             icon=folium.Icon(color=color, icon="info-sign"),
-        ).add_to(m)
+        ).add_to(poi_group)
+
+    track_group.add_to(m)
+    poi_group.add_to(m)
+
+    folium.LayerControl(
+        position=map_cfg.get("layer_control_position", "topright"),
+        collapsed=map_cfg.get("layer_control_collapsed", False),
+    ).add_to(m)
 
     m.save(html_path)
     return html_path

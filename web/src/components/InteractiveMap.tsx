@@ -3,6 +3,7 @@ import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } fro
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import './InteractiveMap.css'
+import { Crosshair, Layers } from 'lucide-react'
 
 export type TileSource = {
   id: string
@@ -64,36 +65,41 @@ function LocateButton() {
     map.locate({ setView: true, maxZoom: 14 })
   }
   return (
-    <button className="map-control" onClick={handleLocate} title="Locate me">
-      Locate
+    <button className="locate-control" onClick={handleLocate} title="Locate me" aria-label="Locate me">
+      <Crosshair size={18} />
     </button>
   )
 }
 
-function TileSelector({
-  tileOptions,
-  value,
-  onChange,
-}: {
-  tileOptions: TileSource[]
-  value: string
-  onChange: (id: string) => void
-}) {
+function TileSelector({ tileOptions, value, onChange }: { tileOptions: TileSource[]; value: string; onChange: (id: string) => void }) {
+  const [open, setOpen] = useState(false)
+
   return (
-    <div className="tile-selector">
-      <label htmlFor="tile-source">Tiles</label>
-      <select
-        id="tile-source"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label="Select map tile source"
+    <div className="tile-control-wrapper">
+      <button
+        className="tile-control"
+        onClick={() => setOpen((p) => !p)}
+        title="Switch map tiles"
+        aria-label="Switch map tiles"
       >
-        {tileOptions.map((opt) => (
-          <option key={opt.id} value={opt.id}>
-            {opt.name}
-          </option>
-        ))}
-      </select>
+        <Layers size={18} />
+      </button>
+      {open && (
+        <div className="tile-popover" role="menu">
+          {tileOptions.map((opt) => (
+            <button
+              key={opt.id}
+              className={`tile-option ${opt.id === value ? 'active' : ''}`}
+              onClick={() => {
+                onChange(opt.id)
+                setOpen(false)
+              }}
+            >
+              {opt.name}
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

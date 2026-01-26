@@ -15,44 +15,96 @@
   right: auto !important;
 }
 
-.map-control {
+.locate-control {
   position: absolute;
-  top: 14px;
-  left: 14px;
-  z-index: 10;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--color-border);
-  padding: 8px 10px;
-  border-radius: 10px;
-  cursor: pointer;
-  box-shadow: var(--color-shadow-lg);
-}
-
-.tile-selector {
-  position: absolute;
-  top: 72px; /* place under zoom controls */
-  left: 14px; /* align under zoom */
-  right: auto;
+  top: 92px; /* safely below the stacked zoom buttons */
+  left: 10px;
   z-index: 420;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  background: rgba(255, 255, 255, 0.9);
-  border: 1px solid var(--color-border);
-  padding: 8px 10px;
-  border-radius: 10px;
-  box-shadow: var(--color-shadow-lg);
+  background: #fff;
+  border: 1px solid #c7cdd3;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
-.tile-selector label {
-  font-size: 12px;
-  color: var(--color-text-secondary);
+.locate-control:hover {
+  background: #f5f6f7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
 }
 
-.tile-selector select {
-  padding: 6px;
-  border-radius: 8px;
-  border: 1px solid var(--color-border);
+.locate-control svg {
+  stroke: #2c3e50;
+  width: 18px;
+  height: 18px;
+}
+
+.tile-control-wrapper {
+  position: absolute;
+  top: 134px; /* below locate button */
+  left: 10px;
+  z-index: 420;
+}
+
+.tile-control {
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border: 1px solid #c7cdd3;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tile-control:hover {
+  background: #f5f6f7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.tile-control svg {
+  stroke: #2c3e50;
+  width: 18px;
+  height: 18px;
+}
+
+.tile-popover {
+  margin-top: 6px;
+  background: #fff;
+  border: 1px solid #c7cdd3;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: 6px 0;
+  min-width: 160px;
+}
+
+.tile-option {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.tile-option:hover {
+  background: #f3f4f6;
+}
+
+.tile-option.active {
+  background: #eef2ff;
+  color: #3730a3;
+  font-weight: 600;
 }
 
 .tooltip-content {

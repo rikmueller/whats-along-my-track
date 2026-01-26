@@ -33,10 +33,11 @@ export default function FilterSelectionModal({ open, mode, existing, onClose, on
   }, [existing, open])
 
   const filteredSuggestions = useMemo(() => {
+    if (mode === 'exclude') return []
     if (!query) return DEFAULT_SUGGESTIONS
     const q = query.toLowerCase()
     return DEFAULT_SUGGESTIONS.filter((s) => s.toLowerCase().includes(q))
-  }, [query])
+  }, [mode, query])
 
   const toggle = (value: string) => {
     setSelection((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]))
@@ -65,21 +66,25 @@ export default function FilterSelectionModal({ open, mode, existing, onClose, on
         </>
       }
     >
-      <div className="filter-search">
-        <input
-          placeholder="Search suggestions"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
-      </div>
-      <div className="filter-suggestions">
-        {filteredSuggestions.map((s) => (
-          <label key={s} className="filter-item">
-            <input type="checkbox" checked={selection.includes(s)} onChange={() => toggle(s)} />
-            <span>{s}</span>
-          </label>
-        ))}
-      </div>
+      {mode === 'include' && (
+        <>
+          <div className="filter-search">
+            <input
+              placeholder="Search suggestions"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </div>
+          <div className="filter-suggestions">
+            {filteredSuggestions.map((s) => (
+              <label key={s} className="filter-item">
+                <input type="checkbox" checked={selection.includes(s)} onChange={() => toggle(s)} />
+                <span>{s}</span>
+              </label>
+            ))}
+          </div>
+        </>
+      )}
       <div className="custom-add">
         <label htmlFor="customFilter">Custom (key=value)</label>
         <div className="custom-row">
