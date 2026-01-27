@@ -23,6 +23,7 @@ type Props = {
   onOpenPresetModal: () => void
   onOpenIncludeModal: () => void
   onOpenExcludeModal: () => void
+  onDeletePreset: (preset: string) => void
 }
 
 export default function SettingsSheet({
@@ -39,6 +40,7 @@ export default function SettingsSheet({
   onOpenPresetModal,
   onOpenIncludeModal,
   onOpenExcludeModal,
+  onDeletePreset,
 }: Props) {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -57,6 +59,18 @@ export default function SettingsSheet({
       }
     }
   }, [selectedFile])
+
+  const deleteIncludeFilter = (filter: string) => {
+    onSettingsChange({ includes: settings.includes.filter((f) => f !== filter) })
+  }
+
+  const deleteExcludeFilter = (filter: string) => {
+    onSettingsChange({ excludes: settings.excludes.filter((f) => f !== filter) })
+  }
+
+  const deletePreset = (preset: string) => {
+    onDeletePreset(preset)
+  }
 
   return (
     <>
@@ -157,6 +171,14 @@ export default function SettingsSheet({
             {settings.presets.map((p) => (
               <span key={p} className="chip">
                 {p}
+                <button
+                  className="chip-delete"
+                  onClick={() => deletePreset(p)}
+                  aria-label={`Delete preset ${p}`}
+                  title="Remove preset"
+                >
+                  ×
+                </button>
               </span>
             ))}
           </div>
@@ -176,6 +198,14 @@ export default function SettingsSheet({
             {settings.includes.map((f) => (
               <span key={f} className="chip">
                 {f}
+                <button
+                  className="chip-delete"
+                  onClick={() => deleteIncludeFilter(f)}
+                  aria-label={`Delete ${f}`}
+                  title="Remove filter"
+                >
+                  ×
+                </button>
               </span>
             ))}
           </div>
@@ -195,6 +225,14 @@ export default function SettingsSheet({
             {settings.excludes.map((f) => (
               <span key={f} className="chip">
                 {f}
+                <button
+                  className="chip-delete"
+                  onClick={() => deleteExcludeFilter(f)}
+                  aria-label={`Delete ${f}`}
+                  title="Remove filter"
+                >
+                  ×
+                </button>
               </span>
             ))}
           </div>

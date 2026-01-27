@@ -46,3 +46,33 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background-color: var(--color-border);
+  border-radius: 20px;
+  font-size: 14px;
+}
+
+.chip-delete {
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
+  font-size: 18px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.chip-delete:hover {
+  opacity: 1;
+}

@@ -254,6 +254,11 @@ function DevApp() {
     }))
   }
 
+  const deletePresetFromChip = (preset: string) => {
+    const remainingPresets = settings.presets.filter((p) => p !== preset)
+    addPresetFilters(remainingPresets)
+  }
+
   return (
     <div className="dev-app">
       <BrandingHeader title="alongGPX" subtitle="Plan smarter along your track" />
@@ -279,6 +284,7 @@ function DevApp() {
         onOpenPresetModal={openPresetModal}
         onOpenIncludeModal={() => openFilterModal('include')}
         onOpenExcludeModal={() => openFilterModal('exclude')}
+        onDeletePreset={deletePresetFromChip}
       />
 
       <PresetSelectionModal

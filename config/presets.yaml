@@ -86,7 +86,7 @@ presets:
   fast_food:
     name: "Fast Food"
     category: "Food"
-    info: "Find fast-food outlets and quick meal options"
+    info: "Find quick meal options"
     include:
       - "amenity=fast_food"
 

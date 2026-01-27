@@ -43,6 +43,10 @@ export default function FilterSelectionModal({ open, mode, existing, onClose, on
     setSelection((prev) => (prev.includes(value) ? prev.filter((v) => v !== value) : [...prev, value]))
   }
 
+  const deleteFilter = (value: string) => {
+    setSelection((prev) => prev.filter((v) => v !== value))
+  }
+
   const addCustom = () => {
     const val = custom.trim()
     if (!val || !val.includes('=')) return
@@ -104,6 +108,14 @@ export default function FilterSelectionModal({ open, mode, existing, onClose, on
         {selection.map((s) => (
           <span key={s} className="chip">
             {s}
+            <button
+              className="chip-delete"
+              onClick={() => deleteFilter(s)}
+              aria-label={`Delete ${s}`}
+              title="Remove filter"
+            >
+              ×
+            </button>
           </span>
         ))}
       </div>
