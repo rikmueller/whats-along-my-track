@@ -1,6 +1,7 @@
 import os
 import json
 import folium
+from string import Template
 from folium.plugins import LocateControl
 from datetime import datetime
 
@@ -46,7 +47,6 @@ def build_folium_map(
 
     m = folium.Map(
         location=[start_lat, start_lon],
-        zoom_start=map_cfg.get("zoom_start", 10),
         tiles=None,  # We add explicit tile layers below so the user can switch
     )
 
@@ -62,8 +62,9 @@ def build_folium_map(
     # Add locate control button
     LocateControl(position="topleft").add_to(m)
 
-    # Add recenter control to fit track bounds (when track exists)
+    # Add recenter control to fit track + POI bounds (when data exists)
     track_latlon = [[lat, lon] for lon, lat in track_points] if track_points else []
+    poi_latlon = [[row["lat"], row["lon"]] for _, row in (df.iterrows() if df is not None else [])]
     recenter_style = """
     <style>
         .leaflet-bar.folium-recenter-control {
@@ -99,48 +100,58 @@ def build_folium_map(
     </style>
     """
 
-    recenter_script = f"""
+    recenter_template = Template("""
     <script>
-        (function() {{
-            var track = {json.dumps(track_latlon)};
-            var mapName = "{m.get_name()}";
+        (function() {
+            var track = $track;
+            var poi = $poi;
+            var mapName = "$map_name";
             var attempts = 0;
-            function attach() {{
+            function attach() {
                 var map = window[mapName];
-                if (!map) {{
+                if (!map) {
                     if (attempts++ < 50) return setTimeout(attach, 100);
                     return;
-                }}
+                }
                 
-                var control = L.control({{ position: 'topleft' }});
-                control.onAdd = function() {{
+                var control = L.control({ position: 'topleft' });
+                control.onAdd = function() {
                     var container = L.DomUtil.create('div', 'leaflet-bar folium-recenter-control');
                     var link = L.DomUtil.create('a', '', container);
                     link.href = '#';
-                    link.title = track.length ? 'Recenter to track' : 'Load a track to recenter';
+                    var hasTrack = track.length > 0;
+                    var hasPois = poi.length > 0;
+                    var hasAny = hasTrack || hasPois;
+                    link.title = hasAny ? 'Recenter to data' : 'Load data to recenter';
                     link.setAttribute('role', 'button');
                     link.setAttribute('aria-label', link.title);
-                    link.innerHTML = '\\u27f2';
-                    if (!track.length) {{
+                    link.innerHTML = '\u27f2';
+                    if (!hasAny) {
                         link.classList.add('disabled');
-                    }}
+                    }
                     
                     L.DomEvent.disableClickPropagation(link);
-                    L.DomEvent.on(link, 'click', function (e) {{
+                    L.DomEvent.on(link, 'click', function (e) {
                         L.DomEvent.preventDefault(e);
-                        if (!track.length) return;
-                        var bounds = L.latLngBounds(track.map(function(p) {{ return [p[0], p[1]]; }}));
-                        map.fitBounds(bounds, {{ padding: [24, 24] }});
-                    }});
+                        if (!hasAny) return;
+                        var points = track.concat(poi);
+                        var bounds = L.latLngBounds(points.map(function(p) { return [p[0], p[1]]; }));
+                        map.fitBounds(bounds, { padding: [24, 24] });
+                    });
                     
                     return container;
-                }};
+                };
                 control.addTo(map);
-            }}
+            }
             attach();
-        }})();
+        })();
     </script>
-    """
+    """)
+    recenter_script = recenter_template.substitute(
+        track=json.dumps(track_latlon),
+        poi=json.dumps(poi_latlon),
+        map_name=m.get_name(),
+    )
 
     m.get_root().html.add_child(folium.Element(recenter_style))
     m.get_root().html.add_child(folium.Element(recenter_script))
@@ -156,6 +167,9 @@ def build_folium_map(
         opacity=0.8,
     ).add_to(track_group)
 
+    # Collect bounds from track and POIs for initial auto-fit
+    bounds = [[lat, lon] for lon, lat in track_points] if track_points else []
+
     # Get color palette and create filter-to-color mapping by rank
     color_palette = map_cfg.get("marker_color_palette", ["red", "orange", "purple", "green", "blue"])
     default_color = map_cfg.get("default_marker_color", "gray")
@@ -167,6 +181,7 @@ def build_folium_map(
             filter_to_color[filt] = color
 
     for _, row in df.iterrows():
+        bounds.append([row["lat"], row["lon"]])
         popup_html = f"""
         <b>{row['Name']}</b><br>
         <b>Kilometers from start:</b> {row['Kilometers from start']}<br>
@@ -185,6 +200,9 @@ def build_folium_map(
             popup=folium.Popup(popup_html, max_width=300),
             icon=folium.Icon(color=color, icon="info-sign"),
         ).add_to(poi_group)
+
+    if bounds:
+        m.fit_bounds(bounds, padding=(24, 24))
 
     track_group.add_to(m)
     poi_group.add_to(m)

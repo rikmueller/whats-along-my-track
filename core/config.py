@@ -55,8 +55,6 @@ def load_env_config() -> dict:
         env_cfg["step_km"] = float(os.getenv("ALONGGPX_STEP_KM"))
     if os.getenv("ALONGGPX_BATCH_KM"):
         env_cfg["batch_km"] = float(os.getenv("ALONGGPX_BATCH_KM"))
-    if os.getenv("ALONGGPX_MAP_ZOOM_START"):
-        env_cfg["map_zoom_start"] = int(os.getenv("ALONGGPX_MAP_ZOOM_START"))
     if os.getenv("ALONGGPX_OVERPASS_RETRIES"):
         env_cfg["overpass_retries"] = int(os.getenv("ALONGGPX_OVERPASS_RETRIES"))
     if os.getenv("ALONGGPX_TIMEZONE"):
@@ -116,8 +114,6 @@ def merge_env_into_config(cfg: dict, env_cfg: dict) -> dict:
         cfg["search"]["step_km"] = env_cfg["step_km"]
     if "batch_km" in env_cfg:
         cfg["overpass"]["batch_km"] = env_cfg["batch_km"]
-    if "map_zoom_start" in env_cfg:
-        cfg["map"]["zoom_start"] = env_cfg["map_zoom_start"]
     if "overpass_retries" in env_cfg:
         cfg["overpass"]["retries"] = env_cfg["overpass_retries"]
     if "timezone" in env_cfg:
