@@ -56,9 +56,11 @@
     backdrop-filter: none;
     box-shadow: none;
     border-radius: 0;
-    transform: translateY(100vh);
+    /* Use element-relative translation so it fully leaves the viewport on mobile (avoids 100vh quirks) */
+    transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
     z-index: 190;
+    visibility: hidden;
     display: flex;
     flex-direction: column;
     overflow: hidden;
@@ -67,10 +69,13 @@
 
   .sheet.open {
     transform: translateY(0);
+    visibility: visible;
   }
 
   .sheet.closed {
-    transform: translateY(100vh);
+    transform: translateY(100%);
+    pointer-events: none;
+    visibility: hidden;
   }
 
   /* Mobile header bar */

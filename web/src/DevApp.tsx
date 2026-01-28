@@ -390,7 +390,7 @@ function DevApp() {
   }
 
   return (
-    <div className="dev-app">
+    <div className={`dev-app ${sheetOpen ? 'sheet-open' : 'sheet-closed'}`}>
       <BrandingHeader title="alongGPX" subtitle="Plan smarter along your track" />
       <InteractiveMap
         track={trackData}

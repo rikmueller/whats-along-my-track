@@ -4,16 +4,14 @@
   z-index: 0;
 }
 
-/* On mobile, ensure map wrapper is above backdrop but below sheet when open */
-@media (max-width: 991px) {
-  .map-wrapper {
-    z-index: 176; /* Above backdrop (175), below FAB (180) and sheet (190) */
-  }
-}
-
 .map {
   width: 100%;
-  height: 100vh;
+  /* Size to the fixed wrapper to avoid mobile 100vh quirks (controls can end up off-screen) */
+  height: 100%;
+  /* Fallbacks for browsers that treat % heights oddly */
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
 }
 
 /* Move attribution to bottom left */
@@ -153,40 +151,32 @@
   font-size: 12px;
 }
 
-/* Mobile attribution and scale positioning */
+/* Mobile: show attribution/scale ONLY in map view (sheet closed) */
 @media (max-width: 991px) {
-  /* Position attribution container above everything */
-  .leaflet-bottom.leaflet-right {
+  /* When settings overlay is open, hide Leaflet chrome completely */
+  .dev-app.sheet-open .leaflet-control-attribution,
+  .dev-app.sheet-open .leaflet-control-scale {
+    display: none !important;
+  }
+
+  /* When settings are closed, keep Leaflet controls above any app chrome */
+  .dev-app.sheet-closed .leaflet-control-container,
+  .dev-app.sheet-closed .leaflet-top,
+  .dev-app.sheet-closed .leaflet-bottom {
+    z-index: 10000 !important;
+  }
+
+  /* When settings are closed, ensure controls are visible and not under the FAB */
+  .dev-app.sheet-closed .leaflet-bottom.leaflet-right {
     left: 10px !important;
     right: auto !important;
-    bottom: 10px !important;
-    max-width: calc(100vw - 100px) !important; /* Leave space for FAB */
-    z-index: 250 !important; /* Above sheet (190) */
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    max-width: calc(100vw - 96px) !important;
   }
 
-  /* Ensure attribution is visible and readable */
-  .leaflet-bottom.leaflet-right .leaflet-control-attribution,
-  .leaflet-control-attribution {
-    z-index: 250 !important; /* Above sheet and backdrop */
-    font-size: 10px !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(8px) !important;
-    padding: 2px 6px !important;
-    margin: 0 !important;
-    opacity: 1 !important;
+  /* Scale is bottom-left by default; lift it above attribution a bit */
+  .dev-app.sheet-closed .leaflet-control-scale {
     display: block !important;
-    visibility: visible !important;
-  }
-
-  /* Position scale control above attribution with proper spacing */
-  .leaflet-bottom.leaflet-right .leaflet-control-scale,
-  .leaflet-control-scale {
-    margin-bottom: 8px !important;
-    z-index: 250 !important; /* Above sheet and backdrop */
-    opacity: 1 !important;
-    display: block !important;
-    visibility: visible !important;
-    background: rgba(255, 255, 255, 0.95) !important;
-    backdrop-filter: blur(8px) !important;
+    margin-bottom: 30px !important;
   }
 }
