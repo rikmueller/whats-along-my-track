@@ -132,6 +132,14 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
     <div className="settings-form">
       <h2>⚙️ Settings</h2>
 
+      <button
+        onClick={onStart}
+        disabled={isProcessing}
+        className="btn btn-primary btn-large"
+      >
+        {isProcessing ? 'Processing...' : '🚀 Generate'}
+      </button>
+
       <div className="form-group">
         <label>Project Name</label>
         <input
@@ -246,14 +254,6 @@ const SettingsForm: React.FC<SettingsFormProps> = ({
           + Add Exclude
         </button>
       </div>
-
-      <button
-        onClick={onStart}
-        disabled={isProcessing}
-        className="btn btn-primary btn-large"
-      >
-        {isProcessing ? 'Processing...' : '🚀 Generate'}
-      </button>
     </div>
   )
 }

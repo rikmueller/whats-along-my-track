@@ -52,6 +52,7 @@ export default function SettingsSheet({
   }
 
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const errorRef = useRef<HTMLDivElement>(null)
 
   // Clear native file input when selectedFile is reset to null
   useEffect(() => {
@@ -63,6 +64,13 @@ export default function SettingsSheet({
       }
     }
   }, [selectedFile])
+
+  // Scroll to error message when it appears
+  useEffect(() => {
+    if (error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [error])
 
   const deleteIncludeFilter = (filter: string) => {
     onDeleteIncludeFilter(filter)
@@ -148,8 +156,19 @@ export default function SettingsSheet({
             <strong>Processing:</strong> {status?.message || 'Working...'} — {status?.percent ?? 0}%
           </div>
         ) : error ? (
-          <div className="alert alert-error">{error}</div>
+          <div className="alert alert-error" ref={errorRef}>{error}</div>
         ) : null}
+
+        <div className="actions">
+          <div className="action-buttons">
+            <button className="btn btn-secondary" onClick={onReset}>
+              Reset
+            </button>
+            <button className="btn btn-primary" onClick={onStart}>
+              {status?.state === 'processing' ? 'Processing...' : 'Process'}
+            </button>
+          </div>
+        </div>
 
         <section className="sheet-section">
           <div className="section-head">
@@ -321,17 +340,6 @@ export default function SettingsSheet({
             )}
           </div>
         </section>
-
-        <div className="actions">
-          <div className="action-buttons">
-            <button className="btn btn-secondary" onClick={onReset}>
-              Reset
-            </button>
-            <button className="btn btn-primary" onClick={onStart}>
-              {status?.state === 'processing' ? 'Processing...' : 'Process'}
-            </button>
-          </div>
-        </div>
       </div>
     </aside>
     </>

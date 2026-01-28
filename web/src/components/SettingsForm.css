@@ -8,6 +8,11 @@
     margin-bottom: var(--spacing-lg);
     font-size: var(--font-size-xl);
   }
+
+  /* Add margin-bottom to button at top of form */
+  > .btn.btn-large {
+    margin-bottom: var(--spacing-xl);
+  }
 }
 
 .form-group {

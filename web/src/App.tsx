@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { apiClient, ConfigResponse, JobStatus } from './api'
 import UploadArea from './components/UploadArea'
 import SettingsForm from './components/SettingsForm'
@@ -17,6 +17,7 @@ interface ProcessingState {
 }
 
 function App() {
+  const errorRef = useRef<HTMLDivElement>(null)
   const [state, setState] = useState<ProcessingState>({
     stage: 'idle',
     jobId: null,
@@ -59,6 +60,13 @@ function App() {
     }
     loadConfig()
   }, [])
+
+  // Scroll to error message when it appears
+  useEffect(() => {
+    if (state.error && errorRef.current) {
+      errorRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    }
+  }, [state.error])
 
   // Poll job status when processing
   useEffect(() => {
@@ -186,7 +194,7 @@ function App() {
       <main className="app-main">
         <div className="container">
           {state.error && (
-            <div className="error-banner">
+            <div className="error-banner" ref={errorRef}>
               <strong>Error:</strong> {state.error}
             </div>
           )}
