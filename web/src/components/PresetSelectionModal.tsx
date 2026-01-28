@@ -94,11 +94,6 @@ export default function PresetSelectionModal({ open, selected, presetsDetail, on
                   />
                   <div className="preset-info">
                     <div className="preset-name">{detail.name || id}</div>
-                    <div className="preset-meta">{detail.info || 'No description'}</div>
-                    <div className="preset-tags">
-                      <span>{(detail.include || []).length} include</span>
-                      <span>{(detail.exclude || []).length} exclude</span>
-                    </div>
                   </div>
                 </label>
               ))}

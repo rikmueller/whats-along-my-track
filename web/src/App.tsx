@@ -194,9 +194,6 @@ function App() {
           {state.stage === 'idle' && (
             <div className="two-column">
               <div className="column">
-                <UploadArea onFileSelected={handleFileSelected} selectedFile={uploadedFile} />
-              </div>
-              <div className="column">
                 {state.config && (
                   <SettingsForm
                     config={state.config}
@@ -206,6 +203,9 @@ function App() {
                     isProcessing={false}
                   />
                 )}
+              </div>
+              <div className="column">
+                <UploadArea onFileSelected={handleFileSelected} selectedFile={uploadedFile} />
               </div>
             </div>
           )}
