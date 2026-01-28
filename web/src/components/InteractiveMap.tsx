@@ -344,6 +344,38 @@ export default function InteractiveMap({ track, pois, tileSource, tileOptions, o
         {polylineCoords.length > 0 && (
           <Polyline positions={polylineCoords as L.LatLngExpression[]} pathOptions={{ color: '#2563eb', weight: 3 }} />
         )}
+        {polylineCoords.length > 0 && (
+          <>
+            <Marker 
+              position={polylineCoords[0] as L.LatLngExpression}
+              icon={L.icon({
+                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
+                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                iconSize: [25, 41],
+                iconAnchor: [12, 41],
+                popupAnchor: [1, -34],
+                shadowSize: [41, 41],
+              })}
+            >
+              <Popup><strong>Start</strong></Popup>
+            </Marker>
+            {polylineCoords.length > 1 && (
+              <Marker 
+                position={polylineCoords[polylineCoords.length - 1] as L.LatLngExpression}
+                icon={L.icon({
+                  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+                  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
+                  iconSize: [25, 41],
+                  iconAnchor: [12, 41],
+                  popupAnchor: [1, -34],
+                  shadowSize: [41, 41],
+                })}
+              >
+                <Popup><strong>End</strong></Popup>
+              </Marker>
+            )}
+          </>
+        )}
         {pois.map((poi) => {
           const color = poi.matchingFilter ? filterColorMap[poi.matchingFilter] || DEFAULT_COLOR : DEFAULT_COLOR
           const icon = createColoredIcon(color)

@@ -41,7 +41,6 @@ map:
   # Color palette for markers based on filter rank
   # Colors are assigned to filters in order: Filter1=palette[0], Filter2=palette[1], etc.
   marker_color_palette:
-    - "red"
     - "orange"
     - "purple"
     - "green"
