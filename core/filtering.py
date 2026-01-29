@@ -1,5 +1,5 @@
 import logging
-from shapely.geometry import LineString, Point
+from shapely.geometry import LineString
 from pyproj import Transformer, Geod
 import pandas as pd
 

@@ -13,11 +13,14 @@ env/
 Thumbs.db
 
 # Output files
-*.xlsx
-*.html
+data/output/*
+
 # But do track example files
-!example*.xlsx
-!example*.html
+data/output/!example*.xlsx
+data/output/!example*.html
 
 # Logs
 *.log
+
+# Local environment overrides
+config/.env

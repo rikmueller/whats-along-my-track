@@ -1,0 +1,204 @@
+.map-wrapper {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+}
+
+.map {
+  width: 100%;
+  /* Size to the fixed wrapper to avoid mobile 100vh quirks (controls can end up off-screen) */
+  height: 100%;
+  /* Fallbacks for browsers that treat % heights oddly */
+  min-height: 100vh;
+  min-height: 100svh;
+  min-height: 100dvh;
+}
+
+/* Move attribution to bottom left */
+.leaflet-bottom.leaflet-right {
+  left: 10px !important;
+  right: auto !important;
+}
+
+/* Position scale control above attribution */
+.leaflet-control-scale {
+  margin-bottom: 30px !important;
+}
+
+.locate-control,
+.recenter-control {
+  position: absolute;
+  top: 92px; /* safely below the stacked zoom buttons */
+  left: 10px;
+  z-index: 420;
+  background: #fff;
+  border: 1px solid #c7cdd3;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.locate-control:not(:disabled):hover,
+.recenter-control:not(:disabled):hover {
+  background: #f5f6f7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.locate-control:disabled,
+.recenter-control:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+  background: #f9fafb;
+}
+
+.locate-control.locating {
+  background: #dbeafe;
+  border-color: #3b82f6;
+}
+
+.locate-control.locating svg {
+  animation: pulse-locate 1.5s ease-in-out infinite;
+  stroke: #3b82f6;
+}
+
+@keyframes pulse-locate {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+
+.locate-control svg,
+.recenter-control svg {
+  stroke: #2c3e50;
+  width: 18px;
+  height: 18px;
+}
+
+.recenter-control {
+  top: 176px; /* below tile selector */
+}
+
+.tile-control-wrapper {
+  position: absolute;
+  top: 134px; /* below locate button */
+  left: 10px;
+  z-index: 420;
+}
+
+.tile-control {
+  width: 32px;
+  height: 32px;
+  background: #fff;
+  border: 1px solid #c7cdd3;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  cursor: pointer;
+  transition: background 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tile-control:hover {
+  background: #f5f6f7;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+}
+
+.tile-control svg {
+  stroke: #2c3e50;
+  width: 18px;
+  height: 18px;
+}
+
+.tile-popover {
+  margin-top: 6px;
+  background: #fff;
+  border: 1px solid #c7cdd3;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  padding: 6px 0;
+  min-width: 160px;
+}
+
+.tile-option {
+  width: 100%;
+  text-align: left;
+  padding: 8px 12px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #1f2937;
+}
+
+.tile-option:hover {
+  background: #f3f4f6;
+}
+
+.tile-option.active {
+  background: #eef2ff;
+  color: #3730a3;
+  font-weight: 600;
+}
+
+.tooltip-content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tooltip-content .chip {
+  background: #eef2ff;
+  color: #3730a3;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 12px;
+}
+
+.tooltip-content .meta {
+  color: var(--color-text-secondary);
+  font-size: 12px;
+}
+
+/* Mobile: show attribution/scale ONLY in map view (sheet closed) */
+@media (max-width: 991px) {
+  /* When settings overlay is open, hide Leaflet chrome completely */
+  .dev-app.sheet-open .leaflet-control-attribution,
+  .dev-app.sheet-open .leaflet-control-scale {
+    display: none !important;
+  }
+
+  /* When settings are closed, keep Leaflet controls above any app chrome */
+  .dev-app.sheet-closed .leaflet-control-container,
+  .dev-app.sheet-closed .leaflet-top,
+  .dev-app.sheet-closed .leaflet-bottom {
+    z-index: 10000 !important;
+  }
+
+  /* When settings are closed, ensure controls are visible and not under the FAB */
+  .dev-app.sheet-closed .leaflet-bottom.leaflet-right {
+    left: 10px !important;
+    right: auto !important;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    max-width: calc(100vw - 96px) !important;
+  }
+
+  /* Scale is bottom-left by default; lift it above attribution a bit */
+  .dev-app.sheet-closed .leaflet-control-scale {
+    display: block !important;
+    margin-bottom: 30px !important;
+  }
+}

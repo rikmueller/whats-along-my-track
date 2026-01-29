@@ -14,8 +14,6 @@ from core.overpass import query_overpass_segmented
 from core.filtering import filter_elements_and_build_rows
 from core.export import export_to_excel
 from core.folium_map import build_folium_map
-from datetime import datetime
-from zoneinfo import ZoneInfo
 
 logger = logging.getLogger(__name__)
 
@@ -25,28 +23,37 @@ def run_pipeline(
     cli_presets: list | None = None,
     cli_include: list | None = None,
     cli_exclude: list | None = None,
+    progress_callback=None,
+    excel_filename: str | None = None,
+    html_filename: str | None = None,
 ):
     """
     Core pipeline function that can be called from CLI or web app.
     
     Args:
         config: Dictionary containing all configuration (project, search, overpass, map, etc.)
+        cli_presets: List of preset names to apply
+        cli_include: List of include filters
+        cli_exclude: List of exclude filters
+        progress_callback: Callable(percent, message) for progress updates
+        excel_filename: Optional filename for Excel output (UUID-based). If None, uses project_name.xlsx
+        html_filename: Optional filename for HTML output (UUID-based). If None, uses project_name.html
     
     Returns:
         dict: Results containing paths to Excel and HTML files, dataframe, and metadata
     """
-    # Generate single timestamp for both Excel and HTML files, respecting configured timezone
-    timezone_str = config.get("project", {}).get("timezone", "UTC")
-    try:
-        tz = ZoneInfo(timezone_str)
-    except Exception:
-        logger.warning(f"Invalid timezone '{timezone_str}', falling back to UTC")
-        tz = ZoneInfo("UTC")
-    timestamp = datetime.now(tz).strftime("%Y%m%d_%H%M%S")
+    def report_progress(percent: float, message: str):
+        if progress_callback:
+            try:
+                progress_callback(percent, message)
+            except Exception:
+                logger.debug("Progress callback failed", exc_info=True)
+
+    report_progress(5, "Preparing pipeline...")
     
     # Load presets
     presets_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 
-                                config.get("presets_file", "presets.yaml"))
+                                "config", config.get("presets_file", "presets.yaml"))
     presets = load_presets(presets_path)
 
     # Apply presets to include/exclude
@@ -60,10 +67,22 @@ def run_pipeline(
     )
 
     # Load GPX and prepare track
+    report_progress(10, "Loading GPX track...")
     track_points = load_gpx_track(config["input"]["gpx_file"])
     track_info = compute_track_metrics(track_points)
+    report_progress(
+        20,
+        f"Track loaded: {len(track_points)} points, {track_info['total_length_km']:.1f} km",
+    )
 
     # Overpass queries along the track
+    def overpass_progress(done: int, total: int):
+        base = 25
+        span = 45
+        fraction = done / total if total else 1
+        percent = base + fraction * span
+        report_progress(percent, f"Overpass queries {done}/{total}")
+
     elements = query_overpass_segmented(
         track_points=track_points,
         track_info=track_info,
@@ -71,7 +90,9 @@ def run_pipeline(
         step_km=config["search"]["step_km"],
         overpass_cfg=config["overpass"],
         include_filters=include_filters,
+        progress_cb=overpass_progress,
     )
+    report_progress(75, f"Fetched {len(elements)} raw results. Filtering...")
 
     # Filter elements and generate tabular data
     rows, df = filter_elements_and_build_rows(
@@ -82,14 +103,16 @@ def run_pipeline(
         exclude_filters=exclude_filters,
         include_filters=include_filters,
     )
+    report_progress(82, f"Filtered {len(rows)} results. Exporting...")
 
     # Export to Excel
     excel_path = export_to_excel(
         df=df,
         output_path=config["project"]["output_path"],
         project_name=config["project"]["name"],
-        timestamp=timestamp,
+        filename=excel_filename,
     )
+    report_progress(90, "Excel exported. Building map...")
 
     # Generate Folium map
     html_path = build_folium_map(
@@ -99,8 +122,9 @@ def run_pipeline(
         project_name=config["project"]["name"],
         map_cfg=config["map"],
         include_filters=include_filters,
-        timestamp=timestamp,
+        filename=html_filename,
     )
+    report_progress(95, "Map generated. Finalizing...")
 
     return {
         "excel_path": excel_path,
@@ -125,7 +149,7 @@ def main():
     # If config path is default (not overridden), resolve it relative to repo root
     if args.config == "config.yaml":
         repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        args.config = os.path.join(repo_root, "config.yaml")
+        args.config = os.path.join(repo_root, "config", "config.yaml")
 
     # Merge configuration from YAML + CLI
     config = load_and_merge_config(args.config, args)

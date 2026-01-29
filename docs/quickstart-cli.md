@@ -34,7 +34,7 @@ Your prompt should show `(venv)`.
 
 ## 2) Install Dependencies
 ```bash
-pip install -r requirements-base.txt
+pip install -r cli/requirements-cli.txt
 ```
 
 ## 3) First Run
@@ -60,8 +60,8 @@ python3 cli/main.py --gpx-file ./data/input/track.gpx --preset drinking_water
 ```
 
 ## Configuration & Presets
-- Defaults: `config.yaml`
-- Presets: `presets.yaml`
+- Defaults: `config/config.yaml`
+- Presets: `config/presets.yaml`
 - Precedence: CLI args > environment variables > config.yaml
 
 ### Config Reference
@@ -99,4 +99,4 @@ When CLI filters or presets are provided, `config.yaml:search.include/exclude` a
 ## Troubleshooting
 - Run from repo root (`cd AlongGPX`)
 - Check filter syntax: `key=value`
-- If Overpass times out, reduce query complexity or adjust `batch_km` in `config.yaml`
+- If Overpass times out, reduce query complexity or adjust `batch_km` in `config/config.yaml`

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <!-- Map pin shape -->
+  <path d="M 50 15 C 35 15 25 25 25 40 C 25 60 50 85 50 85 C 50 85 75 60 75 40 C 75 25 65 15 50 15 Z" fill="#2563eb"/>
+  <!-- Inner circle -->
+  <circle cx="50" cy="40" r="8" fill="#ffffff"/>
+</svg>

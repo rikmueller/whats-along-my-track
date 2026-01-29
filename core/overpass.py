@@ -39,14 +39,6 @@ def build_overpass_query_batch(points, radius_km, include_filters):
     return query
 
 
-def build_overpass_query(lon, lat, radius_km, include_filters):
-    """
-    Build an Overpass query with dynamic include filters (single point).
-    Deprecated: Use build_overpass_query_batch for better performance.
-    """
-    return build_overpass_query_batch([(lon, lat)], radius_km, include_filters)
-
-
 def query_overpass_with_retries(query: str, overpass_cfg: dict):
     """
     Execute an Overpass query with multiple servers and retries.
@@ -78,6 +70,7 @@ def query_overpass_segmented(
     step_km: float,
     overpass_cfg: dict,
     include_filters: list,
+    progress_cb=None,
 ):
     """
     Execute batched Overpass queries along the track.
@@ -128,6 +121,12 @@ def query_overpass_segmented(
     for batch_idx, batch_points in enumerate(tqdm(batches, desc="Overpass queries")):
         query = build_overpass_query_batch(batch_points, radius_km, include_filters)
         data = query_overpass_with_retries(query, overpass_cfg)
+
+        if progress_cb:
+            try:
+                progress_cb(batch_idx + 1, len(batches))
+            except Exception:
+                logger.debug("Progress callback failed", exc_info=True)
 
         for el in data.get("elements", []):
             if el["id"] in seen_ids:

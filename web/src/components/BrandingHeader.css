@@ -1,0 +1,54 @@
+.branding-header {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 100;
+  display: flex;
+  justify-content: center;
+  padding: 12px;
+  pointer-events: none;
+}
+
+/* On mobile, increase z-index to be visible above map */
+@media (max-width: 991px) {
+  .branding-header {
+    z-index: 185; /* Above map (176) and FAB (180), below sheet (190) */
+  }
+}
+
+.branding-glass {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  box-shadow: var(--color-shadow-lg);
+  pointer-events: auto;
+}
+
+.logo-mark {
+  font-size: 18px;
+}
+
+.branding-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+  text-align: center;
+}
+
+.branding-title {
+  font-weight: 700;
+  color: var(--color-text);
+  font-weight: bold;
+  font-size: 20px;
+}
+
+.branding-subtitle {
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-sm);
+  margin-top: 4px;
+}

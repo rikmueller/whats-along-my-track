@@ -1,0 +1,124 @@
+presets:
+  camp_sites_tent:
+    name: "Campsites (Tent)"
+    category: "Camping"
+    info: "Find campsites that allow tent camping"
+    include:
+      - "tourism=camp_site"
+    exclude:
+      - "tents=no"
+      - "camp_site:tent=no"
+
+  camp_and_caravan:
+    name: "Caravan Sites"
+    category: "Camping"
+    info: "Find caravan sites"
+    include:
+      - "tourism=caravan_site"
+
+  wild_camping_spots:
+    name: "Wild Camping Spots"
+    category: "Camping"
+    info: "Find designated wild camping spots"
+    include:
+      - "camp_site=wild"
+
+  shelters:
+    name: "Shelters"
+    category: "Amenities"
+    info: "Find shelters for overnight stays or weather protection"
+    include:
+      - "amenity=shelter"
+
+  hotels:
+    name: "Hotels"
+    category: "Accommodation"
+    info: "Find hotels"
+    include:
+      - "tourism=hotel"
+      - "tourism=motel"
+
+  hostels:
+    name: "Hostels"
+    category: "Accommodation"
+    info: "Find hostels"
+    include:
+      - "tourism=hostel"   
+
+  guest_houses:
+    name: "Guest houses and B&Bs"
+    category: "Accommodation"
+    info: "Find guest houses and B&Bs"
+    include:
+      - "tourism=guest_house"
+      - "tourism=bed_and_breakfast"
+
+  drinking_water:
+    name: "Drinking Water"
+    category: "Amenities"
+    info: "Find drinking water sources"
+    include:
+      - "amenity=drinking_water"
+
+  public_toilets:
+    name: "Public Toilets"
+    category: "Amenities"
+    info: "Find public toilets and restrooms"
+    include:
+      - "amenity=toilets"
+
+  picnic_areas:
+    name: "Picnic Areas & Tables"
+    category: "Amenities"
+    info: "Find picnic areas and tables"
+    include:
+      - "tourism=picnic_site"
+      - "leisure=picnic_table"
+
+  restaurants:
+    name: "Restaurants & Cafes"
+    category: "Food"
+    info: "Find restaurants, cafes, and dining options"
+    include:
+      - "amenity=restaurant"
+      - "amenity=cafe"
+
+  fast_food:
+    name: "Fast Food"
+    category: "Food"
+    info: "Find quick meal options"
+    include:
+      - "amenity=fast_food"
+
+  bars:
+    name: "Bars & Pubs"
+    category: "Food"
+    info: "Find bars and pubs"
+    include:
+      - "amenity=bar"
+      - "amenity=pub"
+
+  supermarkets:
+    name: "Supermarkets & Grocery"
+    category: "Shops"
+    info: "Find supermarkets and grocery stores"
+    include:
+      - "shop=supermarket"
+      - "shop=grocery"
+      - "shop=convenience"
+      - "shop=kiosk"
+      - "shop=general"
+
+  bakeries:
+    name: "Bakeries"
+    category: "Shops"
+    info: "Find bakeries and bread shops"
+    include:
+      - "shop=bakery"
+
+  gas_stations:
+    name: "Gas Stations"
+    category: "Shops"
+    info: "Find gas stations"
+    include:
+      - "amenity=fuel"
