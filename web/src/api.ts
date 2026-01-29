@@ -20,6 +20,8 @@ export interface ConfigResponse {
       exclude: string[]
     }
   }
+  marker_color_palette?: string[]
+  default_marker_color?: string
 }
 
 export interface JobStatus {

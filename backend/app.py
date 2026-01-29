@@ -217,6 +217,8 @@ def get_config():
             },
             'presets': list(presets.keys()),
             'presets_detail': {name: p for name, p in presets.items()},
+            'marker_color_palette': config.get('map', {}).get('marker_color_palette', []),
+            'default_marker_color': config.get('map', {}).get('default_marker_color', 'gray'),
         }), 200
     except Exception as e:
         logger.error(f"Config fetch failed: {e}")

@@ -3,7 +3,9 @@ import { MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMap } fro
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import './InteractiveMap.css'
-import { Crosshair, Layers, Navigation } from 'lucide-react'
+import { Crosshair, Layers, Navigation, Play, Square } from 'lucide-react'
+import { apiClient } from '../api'
+import { renderToStaticMarkup } from 'react-dom/server'
 
 export type TileSource = {
   id: string
@@ -33,18 +35,86 @@ type Props = {
   onTileChange: (id: string) => void
 }
 
-const COLOR_PALETTE = ['red', 'orange', 'purple', 'green', 'blue', 'lightblue']
+// Default palette (will be overridden by config.yaml values)
+const DEFAULT_COLOR_PALETTE = ['orange', 'purple', 'green', 'blue', 'darkred', 'darkblue', 'darkgreen', 'cadetblue', 'pink']
 const DEFAULT_COLOR = 'gray'
 
+const MARKER_COLOR_MAP: Record<string, string> = {
+  orange: 'orange',
+  purple: 'violet',
+  green: 'green',
+  blue: 'blue',
+  darkred: 'red',
+  darkblue: 'blue',
+  darkgreen: 'green',
+  cadetblue: 'blue',
+  pink: 'violet',
+  gray: 'grey',
+  grey: 'grey',
+  red: 'red',
+}
+
+const SUPPORTED_MARKER_COLORS = new Set([
+  'blue',
+  'gold',
+  'red',
+  'green',
+  'orange',
+  'yellow',
+  'violet',
+  'grey',
+  'black',
+])
+
+function normalizeMarkerColor(color: string, fallback: string) {
+  const mapped = MARKER_COLOR_MAP[color] || color
+  if (SUPPORTED_MARKER_COLORS.has(mapped)) {
+    return mapped
+  }
+  return MARKER_COLOR_MAP[fallback] || fallback
+}
+
 // Create custom Leaflet icon with specified color
-function createColoredIcon(color: string) {
+function createColoredIcon(color: string, fallback: string) {
+  const markerColor = normalizeMarkerColor(color, fallback)
   return L.icon({
-    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${color}.png`,
+    iconUrl: `https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png`,
     shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
     popupAnchor: [1, -34],
     shadowSize: [41, 41],
+  })
+}
+
+function createStartStopIcon(type: 'start' | 'end') {
+  const isStart = type === 'start'
+  const color = isStart ? '#16a34a' : '#dc2626'
+  const Icon = isStart ? Play : Square
+  const iconMarkup = renderToStaticMarkup(<Icon size={14} strokeWidth={2.5} fill="white" stroke="white" />)
+  
+  return L.divIcon({
+    className: 'start-stop-icon',
+    html: `
+      <div style="
+        position: relative;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: ${color};
+        border: 2px solid #ffffff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      ">
+        ${iconMarkup}
+      </div>
+    `,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15],
+    popupAnchor: [0, -14],
+    tooltipAnchor: [0, -14],
   })
 }
 
@@ -316,6 +386,28 @@ function TileSelector({ tileOptions, value, onChange }: { tileOptions: TileSourc
 
 export default function InteractiveMap({ track, pois, tileSource, tileOptions, onTileChange }: Props) {
   const initialCenter: [number, number] = [49.0069, 8.4037] // fallback Karlsruhe
+  const [colorPalette, setColorPalette] = useState<string[]>(DEFAULT_COLOR_PALETTE)
+
+  // Load color palette from config on mount
+  useEffect(() => {
+    const loadPalette = async () => {
+      try {
+        const config = await apiClient.getConfig()
+        // The config response includes presets_detail with marker_color_palette data
+        if (config.defaults && config as any) {
+          // Extract palette from config - look for it in the response
+          const response = config as any
+          if (response.marker_color_palette && Array.isArray(response.marker_color_palette)) {
+            setColorPalette(response.marker_color_palette)
+          }
+        }
+      } catch (err) {
+        console.debug('Could not load config palette, using defaults', err)
+        setColorPalette(DEFAULT_COLOR_PALETTE)
+      }
+    }
+    loadPalette()
+  }, [])
 
   // Automatic geolocation detection disabled to prevent browser popup
   // Users can still manually click the locate button on the map if desired
@@ -327,10 +419,10 @@ export default function InteractiveMap({ track, pois, tileSource, tileOptions, o
     const uniqueFilters = Array.from(new Set(pois.map((p) => p.matchingFilter).filter(Boolean)))
     const map: Record<string, string> = {}
     uniqueFilters.forEach((filter, idx) => {
-      map[filter] = COLOR_PALETTE[idx % COLOR_PALETTE.length]
+      map[filter] = colorPalette[idx % colorPalette.length]
     })
     return map
-  }, [pois])
+  }, [pois, colorPalette])
 
   return (
     <div className="map-wrapper">
@@ -348,28 +440,14 @@ export default function InteractiveMap({ track, pois, tileSource, tileOptions, o
           <>
             <Marker 
               position={polylineCoords[0] as L.LatLngExpression}
-              icon={L.icon({
-                iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-green.png',
-                shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                iconSize: [25, 41],
-                iconAnchor: [12, 41],
-                popupAnchor: [1, -34],
-                shadowSize: [41, 41],
-              })}
+              icon={createStartStopIcon('start')}
             >
               <Popup><strong>Start</strong></Popup>
             </Marker>
             {polylineCoords.length > 1 && (
               <Marker 
                 position={polylineCoords[polylineCoords.length - 1] as L.LatLngExpression}
-                icon={L.icon({
-                  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
-                  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png',
-                  iconSize: [25, 41],
-                  iconAnchor: [12, 41],
-                  popupAnchor: [1, -34],
-                  shadowSize: [41, 41],
-                })}
+                icon={createStartStopIcon('end')}
               >
                 <Popup><strong>End</strong></Popup>
               </Marker>
@@ -378,7 +456,7 @@ export default function InteractiveMap({ track, pois, tileSource, tileOptions, o
         )}
         {pois.map((poi) => {
           const color = poi.matchingFilter ? filterColorMap[poi.matchingFilter] || DEFAULT_COLOR : DEFAULT_COLOR
-          const icon = createColoredIcon(color)
+          const icon = createColoredIcon(color, DEFAULT_COLOR)
           return (
             <Marker 
               key={poi.id} 
