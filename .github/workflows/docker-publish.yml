@@ -195,7 +195,8 @@ jobs:
           file: ./docker/Dockerfile.nginx
           platforms: linux/amd64
           push: true
-cache-to: type=gha,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: ${{ steps.meta-frontend-tag.outputs.tags }}
           labels: ${{ steps.meta-frontend-tag.outputs.labels }}
 
