@@ -38,6 +38,9 @@ export default defineConfig(({ mode }) => {
   const allowedHosts = parseHosts(env.VITE_ALLOWED_HOSTS || env.ALONGGPX_HOSTNAME) || ['.']
   const hmrHost = env.ALONGGPX_HOSTNAME || env.VITE_HMR_HOST
   const clientEnv = buildClientEnv(env as Record<string, string>)
+  
+  // Use environment variable for backend URL (Docker uses service name, local uses localhost)
+  const backendTarget = env.VITE_BACKEND_URL || 'http://localhost:5000'
 
   return {
     plugins: [react()],
@@ -54,12 +57,12 @@ export default defineConfig(({ mode }) => {
       }),
       proxy: {
         '/api': {
-          target: 'http://localhost:5000',
+          target: backendTarget,
           changeOrigin: true,
           rewrite: (path) => path,
         },
         '/socket.io': {
-          target: 'http://localhost:5000',
+          target: backendTarget,
           changeOrigin: true,
           ws: false,  // Disable WebSocket upgrade, use polling only
         },
