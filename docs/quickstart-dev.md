@@ -64,17 +64,32 @@ Vite runs on **http://localhost:3000** with hot module replacement
 
 ### Environment Variables
 
-**Backend** (`backend/api/.env`):
+**⚠️ Important:** Both Flask backend and Vite dev server read configuration from **`cli/.env`** by default.
+
+This single file controls all local development settings:
+
+**Shared configuration** (`cli/.env`):
 ```bash
-FLASK_ENV=development
-FLASK_PORT=5000
+# Vite HMR hostname (for remote development)
+ALONGGPX_HOSTNAME=localhost
+
+# Project defaults
+ALONGGPX_PROJECT_NAME=MyProject
+ALONGGPX_OUTPUT_PATH=data/output
+ALONGGPX_RADIUS_KM=5
+
+# Search filters (semicolon-separated)
+ALONGGPX_SEARCH_INCLUDE=
+ALONGGPX_SEARCH_EXCLUDE=
+
+# Overpass API settings
+ALONGGPX_BATCH_KM=50
 ```
 
-**Frontend** (`frontend/.env.local`):
-```bash
-VITE_API_BASE_URL=http://localhost:5000
-VITE_ALLOWED_HOSTS=localhost,127.0.0.1
-```
+**Optional overrides:**
+- Create `frontend/.env.local` to override Vite-specific settings (e.g., `VITE_BACKEND_URL`)
+- `frontend/.env.local` is git-ignored and has highest priority for frontend settings
+- Flask always uses `cli/.env` (no separate backend .env file needed)
 
 ---
 
@@ -394,7 +409,7 @@ AlongGPX/
 │   ├── package.json
 │   └── vite.config.ts        # Vite configuration
 ├── deployment/                # Docker deployment
-│   ├── docker-compose.yml    # Production setup (GHCR)
+│   ├── docker-compose.yml    # Production setup
 │   ├── docker-compose.dev.yml # Development setup
 │   ├── Dockerfile            # Backend image
 │   ├── Dockerfile.nginx      # Frontend image

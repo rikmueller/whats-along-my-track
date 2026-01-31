@@ -5,37 +5,14 @@
 ```
 START HERE
     │
-    ├─ Just want to use AlongGPX? ────────────────────► docker-compose.ghcr.yml ✅
+    ├─ Production deployment with local build? ────────► docker-compose.yml ✅
     │
-    ├─ Modifying backend/frontend code? ──────────────► docker-compose.yml
-    │
-    └─ Developing frontend with hot reload? ──────────► docker-compose.dev.yml
+    └─ Developing frontend with hot reload? ───────────► docker-compose.dev.yml
 ```
 
 ## Setup Commands
 
-### Option 1: GHCR Production (Recommended)
-
-```bash
-# 1. Create directory
-mkdir -p alonggpx && cd alonggpx
-
-# 2. Download compose file
-curl -O https://raw.githubusercontent.com/rikmueller/alonggpx/main/deployment/docker-compose.ghcr.yml
-
-# 3. Download .env template
-curl -o .env https://raw.githubusercontent.com/rikmueller/alonggpx/main/deployment/.env.example
-
-# 4. Pull and start
-docker compose -f docker-compose.ghcr.yml pull
-docker compose -f docker-compose.ghcr.yml up -d
-```
-
-Open: **http://localhost:3000**
-
----
-
-### Option 2: Local Build from Source
+### Option 1: Production Deployment (Recommended)
 
 ```bash
 # 1. Clone repository
@@ -53,7 +30,7 @@ Open: **http://localhost:3000**
 
 ---
 
-### Option 3: Development Mode
+### Option 2: Development Mode
 
 ```bash
 # 1. Clone repository
@@ -80,11 +57,7 @@ docker compose logs -f
 # Stop services
 docker compose down
 
-# Update images (GHCR only)
-docker compose -f docker-compose.ghcr.yml pull
-docker compose -f docker-compose.ghcr.yml up -d
-
-# Rebuild (local builds)
+# Rebuild local images
 docker compose up --build -d
 ```
 
@@ -92,4 +65,4 @@ docker compose up --build -d
 
 ## Full Documentation
 
-See [README.md](README.md) for detailed comparison and migration guides.
+See [README.md](README.md) for detailed information about different deployment scenarios.

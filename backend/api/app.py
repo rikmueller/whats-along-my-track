@@ -101,9 +101,11 @@ def load_config_from_env() -> dict:
     Load configuration from environment variables only.
     No YAML files, no complex merging - just pure environment variables with defaults.
     """
-    # Load cli/.env file if present (for local development)
-    cli_env_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'cli', '.env')
-    load_dotenv(cli_env_path)
+    # Load config/local-dev/.env file if present (for local development)
+    # Go up 3 levels from backend/api/app.py to repo root
+    repo_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    local_dev_env_path = os.path.join(repo_root, 'config', 'local-dev', '.env')
+    load_dotenv(local_dev_env_path)
     
     config = {
         'project': {

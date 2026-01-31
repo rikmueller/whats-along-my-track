@@ -1,80 +1,36 @@
 # AlongGPX - Docker Quickstart
 
-Deploy AlongGPX using Docker Compose. **Three deployment options** available - choose the one that fits your needs.
+Deploy AlongGPX using Docker Compose. **Two deployment options** available - choose the one that fits your needs.
 
 ## 🎯 Which Setup Should I Use?
 
 | Scenario | Compose File | Purpose |
 |----------|--------------|---------|
-| **Just want to use AlongGPX** ✅ | `docker-compose.ghcr.yml` | Pre-built images from GitHub Container Registry |
-| Modifying source code | `docker-compose.yml` | Build from local source |
+| **Production deployment** ✅ | `docker-compose.yml` | Build from local source |
 | Frontend development | `docker-compose.dev.yml` | Hot reload for frontend changes |
-
-**👉 Most users should use Option 1 (GHCR)**
 
 ---
 
 ## 📖 Table of Contents
 
-- [Option 1: GHCR Images (Recommended)](#option-1-ghcr-images-recommended)
-- [Option 2: Build from Source](#option-2-build-from-source)
-- [Configuration](#️-configuration)
+- [Production Setup (Standard)](#production-setup-standard)
+- [Configuration](#-configuration)
 - [Common Operations](#-common-operations)
 - [Data Directories](#-data-directories)
 - [Customizing Presets](#-customizing-presets)
-- [Production Deployment](#-production-deployment)
 - [Troubleshooting](#-troubleshooting)
 
 ---
 
-## Option 1: GHCR Images (Recommended)
+## Production Setup (Standard)
 
 ### Prerequisites
 - Docker 20.10+
 - Docker Compose 2.0+
 - 2GB free disk space
-
-### Quick Start
-
-```bash
-# Create project directory
-mkdir -p alonggpx && cd alonggpx
-
-# Download GHCR compose file
-curl -O https://raw.githubusercontent.com/rikmueller/alonggpx/main/deployment/docker-compose.ghcr.yml
-
-# Download .env template
-curl -o .env https://raw.githubusercontent.com/rikmueller/alonggpx/main/deployment/.env.example
-
-# Optional: Edit configuration
-nano .env
-
-# Pull and start services
-docker compose -f docker-compose.ghcr.yml pull
-docker compose -f docker-compose.ghcr.yml up -d
-```
-
-**Open:** http://localhost:3000
-
-### Update to Latest Version
-
-```bash
-docker compose -f docker-compose.ghcr.yml pull
-docker compose -f docker-compose.ghcr.yml up -d
-```
-
----
-
-## Option 2: Build from Source
-
-Use this if you want to modify the code or don't trust pre-built images.
-
-### Prerequisites
-- Docker 20.10+
-- Docker Compose 2.0+
 - Git
 
-### Setup
+### Quick Start
 
 ```bash
 # Clone repository
@@ -84,7 +40,10 @@ cd alonggpx/deployment
 # Copy environment template
 cp .env.example .env
 
-# Build and start
+# Optional: Edit configuration
+nano .env
+
+# Build and start services
 docker compose up --build -d
 ```
 
@@ -141,11 +100,6 @@ ALONGGPX_OUTPUT_RETENTION_DAYS=10       # Delete output files after 10 days
 After editing `.env`, restart services:
 
 ```bash
-# GHCR version
-docker compose -f docker-compose.ghcr.yml down
-docker compose -f docker-compose.ghcr.yml up -d
-
-# Local build version
 docker compose down
 docker compose up -d
 ```
@@ -157,10 +111,6 @@ docker compose up -d
 ### View Logs
 
 ```bash
-# GHCR version
-docker compose -f docker-compose.ghcr.yml logs -f
-
-# Local build
 docker compose logs -f
 
 # Last 100 lines only
@@ -173,20 +123,12 @@ docker compose logs -f backend
 ### Stop Services
 
 ```bash
-# GHCR
-docker compose -f docker-compose.ghcr.yml down
-
-# Local build
 docker compose down
 ```
 
 ### Restart Services
 
 ```bash
-# GHCR
-docker compose -f docker-compose.ghcr.yml restart
-
-# Local build
 docker compose restart
 ```
 
@@ -268,7 +210,7 @@ my_custom_preset:
 
 ### 3. Mount Custom Presets
 
-Edit `docker-compose.ghcr.yml` (or `docker-compose.yml`):
+Edit `docker-compose.yml`:
 
 ```yaml
 volumes:
@@ -279,8 +221,8 @@ volumes:
 ### 4. Restart Services
 
 ```bash
-docker compose -f docker-compose.ghcr.yml down
-docker compose -f docker-compose.ghcr.yml up -d
+docker compose down
+docker compose up -d
 ```
 
 Your custom presets will now appear in the web UI dropdown!
@@ -328,7 +270,7 @@ server {
 
 ### Resource Limits
 
-Edit `docker-compose.ghcr.yml`:
+Edit `docker-compose.yml`:
 
 ```yaml
 services:
@@ -352,7 +294,7 @@ services:
 
 ```bash
 # Check logs
-docker compose -f docker-compose.ghcr.yml logs backend
+docker compose logs backend
 
 # Check if port 3000 is in use
 sudo netstat -tulpn | grep 3000
@@ -404,8 +346,8 @@ docker compose logs -f backend | grep ERROR
 
 ### Which compose file should I use?
 
-- **New users:** `docker-compose.ghcr.yml` (fastest, easiest)
-- **Developers:** `docker-compose.yml` or `docker-compose.dev.yml`
+- **Production:** `docker-compose.yml` (standard deployment)
+- **Frontend development:** `docker-compose.dev.yml` (hot reload)
 - See [deployment/README.md](../deployment/README.md) for detailed comparison
 
 ### Do I need to create data directories?
@@ -423,8 +365,7 @@ See [Customizing Presets](#-customizing-presets) section above.
 ### How do I update to latest version?
 
 ```bash
-docker compose -f docker-compose.ghcr.yml pull
-docker compose -f docker-compose.ghcr.yml up -d
+docker compose up --build -d
 ```
 
 ### Can I run this on a VPS/cloud server?

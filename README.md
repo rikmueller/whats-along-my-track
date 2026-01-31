@@ -25,31 +25,25 @@ Perfect for planning bikepacking trips, long-distance hikes, road trips, or any 
 
 ## 🚀 Quick Start
 
-### Docker (Recommended)
+### Docker
 
-Deploy using Docker Compose with pre-built images from GitHub Container Registry:
+Deploy using Docker Compose:
 
 ```bash
-# Create project directory
-mkdir -p alonggpx && cd alonggpx
+# Clone repository
+git clone https://github.com/rikmueller/alonggpx.git
+cd alonggpx/deployment
 
-# Download GHCR docker-compose file
-curl -O https://raw.githubusercontent.com/rikmueller/alonggpx/main/deployment/docker-compose.ghcr.yml
+# Copy .env template
+cp .env.example .env
 
-# Download .env template
-curl -o .env https://raw.githubusercontent.com/rikmueller/alonggpx/main/deployment/.env.example
-
-# Optional: Edit configuration
-nano .env
-
-# Pull and start services
-docker compose -f docker-compose.ghcr.yml pull
-docker compose -f docker-compose.ghcr.yml up -d
+# Build and start services
+docker compose up --build -d
 ```
 
 Open your browser to **http://localhost:3000**
 
-📖 **Full configuration options:** [docs/quickstart-docker.md](docs/quickstart-docker.md)
+📖 **Full configuration options:** [deployment/QUICKSTART.md](deployment/QUICKSTART.md)
 
 ### Other Options
 
@@ -138,7 +132,7 @@ AlongGPX is configured via environment variables. See [deployment/.env](deployme
 
 ## 📖 Documentation
 
-- **[Quick Start (Docker)](docs/quickstart-docker.md)** - Production deployment with GHCR
+- **[Quick Start (Docker)](deployment/QUICKSTART.md)** - Production deployment with local builds
 - **[Development Setup](docs/quickstart-dev.md)** - Local dev with Vite & Docker
 - **[CLI Usage](docs/quickstart-cli.md)** - Command-line batch processing
 - **[Frontend Architecture](docs/FRONTEND.md)** - React/TypeScript details
