@@ -154,13 +154,7 @@ AlongGPX/
 │   ├── presets.yaml            # Filter presets (camp_basic, drinking_water, etc.)
 │   ├── input/                  # GPX files (mounted in Docker)
 │   └── output/                 # Generated Excel/HTML (timestamped)
-├── docs/                        # Documentation
-│   ├── quickstart-dev.md       # Development setup & workflows
-│   ├── quickstart-cli.md       # CLI setup
-│   ├── quickstart-docker.md    # Docker setup
-│   ├── FRONTEND.md             # Frontend architecture deep-dive
-│   └── IMPLEMENTATION_NOTES.md # Project evolution notes
-├── FRONTEND_QUICKREF.md         # Quick reference for developers
+├── FRONTEND.md                  # Frontend architecture deep-dive
 └── README.md                    # Project overview
 ```
 

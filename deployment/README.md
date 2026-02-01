@@ -23,7 +23,7 @@ docker build -f deployment/Dockerfile.frontend-dev -t alonggpx-frontend-dev .
 
 - [config/docker-prod/README.md](../config/docker-prod/README.md) - Production setup guide
 - [config/docker-dev/README.md](../config/docker-dev/README.md) - Development setup guide
-- [docs/quickstart-docker.md](../docs/quickstart-docker.md) - Detailed Docker documentation
+- [Main README](../README.md) - Project overview
 - You need instant feedback on UI changes
 - You're debugging frontend issues
 
@@ -42,6 +42,6 @@ Both compose files share:
 ## Questions?
 
 - **"Which compose file should I use?"** → Start with `docker-compose.yml`
-- **"How do I customize presets?"** → See [../docs/quickstart-docker.md](../docs/quickstart-docker.md)
+- **"How do I customize presets?"** → Edit [data/presets.yaml](../data/presets.yaml)
 - **"Can I switch between them?"** → Yes, just bring down one and start another
 - **"Do I need to rebuild images?"** → Yes, use `docker compose up --build -d`

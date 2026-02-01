@@ -4,18 +4,31 @@ This directory contains configuration for **local development** with both Flask 
 
 ## Quick Start
 
-1. **Copy the example configuration:**
+1. **Set up Python environment:**
+   ```bash
+   # Create virtual environment
+   python3 -m venv venv
+   
+   # Activate it
+   source venv/bin/activate  # Linux/Mac
+   # or on Windows: venv\Scripts\activate
+   
+   # Install backend dependencies
+   pip install -r backend/api/requirements.txt
+   ```
+
+2. **Copy the example configuration:**
    ```bash
    cp config/local-dev/.env.example config/local-dev/.env
    ```
 
-2. **Start the backend** (Terminal 1):
+3. **Start the backend** (Terminal 1):
    ```bash
    python3 backend/api/app.py
    # Runs on http://localhost:5000
    ```
 
-3. **Start the frontend** (Terminal 2):
+4. **Start the frontend** (Terminal 2):
    ```bash
    cd frontend
    npm install
@@ -23,7 +36,7 @@ This directory contains configuration for **local development** with both Flask 
    # Runs on http://localhost:3000 with hot reload
    ```
 
-4. **Open browser:** http://localhost:3000
+5. **Open browser:** http://localhost:3000
 
 ## Configuration Loading
 
@@ -83,6 +96,6 @@ VITE_BACKEND_URL=http://localhost:5001
 
 ## See Also
 
-- [docs/quickstart-dev.md](../../docs/quickstart-dev.md) - Detailed development guide
-- [frontend/README.md](../../frontend/README.md) - Frontend architecture
+- [Main README](../../README.md) - Project overview
+- [FRONTEND.md](../../FRONTEND.md) - Frontend architecture and development guide
 - [backend/api/app.py](../../backend/api/app.py) - Backend implementation

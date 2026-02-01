@@ -7,50 +7,13 @@
 [![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](https://github.com/rikmueller/alonggpx/pkgs/container/alonggpx)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
+**🌐 Try it online: [along-gpx.de](https://along-gpx.de)**
+
 </div>
 
 ---
 
-## 🎯 What It Does
-
-Upload a GPX track from your bike computer, phone, or mapping app. AlongGPX searches OpenStreetMap for points of interest along your route and generates:
-
-- **📊 Excel spreadsheet** - Names, contact info, opening hours, distances from track
-- **🗺️ Interactive map** - Color-coded markers by POI type, multiple tile layers
-- **📍 Real-time visualization** - Watch POIs appear as the search progresses
-
-Perfect for planning bikepacking trips, long-distance hikes, road trips, or any adventure where you need to know what's nearby.
-
----
-
-## 🚀 Quick Start
-
-### Docker
-
-Deploy using Docker Compose:
-
-```bash
-# Clone repository
-git clone https://github.com/rikmueller/alonggpx.git
-cd alonggpx/deployment
-
-# Copy .env template
-cp .env.example .env
-
-# Build and start services
-docker compose up --build -d
-```
-
-Open your browser to **http://localhost:3000**
-
-📖 **Full configuration options:** [deployment/QUICKSTART.md](deployment/QUICKSTART.md)
-
-### Other Options
-
-- **🔧 Development setup** - Local Vite dev server, hot reload → [docs/quickstart-dev.md](docs/quickstart-dev.md)
-- **⌨️ CLI** - Command-line batch processing → [docs/quickstart-cli.md](docs/quickstart-cli.md)
-
----
+## 💡 How to Use
 
 ## 💡 How to Use
 
@@ -90,6 +53,105 @@ Build your own using OpenStreetMap tags (e.g., `amenity=restaurant`, `shop=bicyc
 
 ---
 
+## 🚀 Getting Started
+
+AlongGPX offers **four ways to run** the application, depending on your needs:
+
+### 🌐 Web Interface (Recommended)
+
+**Use online:** Visit [along-gpx.de](https://along-gpx.de) - no installation required
+
+**Self-host with Docker:**
+```bash
+git clone https://github.com/rikmueller/alonggpx.git
+cd alonggpx/config/docker-prod
+cp .env.example .env
+docker compose up -d
+```
+Open http://localhost:3000
+
+📖 Full guide: [config/docker-prod/README.md](config/docker-prod/README.md)
+
+### ⌨️ Command-Line Interface
+
+For batch processing and automation:
+```bash
+python3 cli/main.py --gpx-file data/input/route.gpx --preset camp_sites_tent
+```
+
+📖 Setup instructions: [config/cli/README.md](config/cli/README.md)
+
+### 💻 Local Development
+
+Run backend and frontend locally for development:
+```bash
+# Terminal 1: Backend
+python3 backend/api/app.py
+
+# Terminal 2: Frontend
+cd frontend && npm run dev
+```
+
+📖 Development setup: [config/local-dev/README.md](config/local-dev/README.md)
+
+### 🐳 Docker Development
+
+Development environment with hot reload:
+```bash
+cd config/docker-dev
+docker compose up
+```
+
+📖 Docker dev guide: [config/docker-dev/README.md](config/docker-dev/README.md)
+
+---
+
+## 🏗️ Project Structure
+
+```
+AlongGPX/
+├── backend/              # Python backend
+│   ├── api/             # Flask REST API
+│   └── core/            # Processing pipeline (GPX, Overpass, filtering)
+├── cli/                 # Command-line interface
+├── frontend/            # React + TypeScript web UI
+│   └── src/
+│       ├── components/  # UI components (Map, Settings, Modals)
+│       └── hooks/       # WebSocket integration
+├── config/              # Configuration by usage mode
+│   ├── cli/            # CLI standalone
+│   ├── local-dev/      # Local development
+│   ├── docker-dev/     # Docker with hot reload
+│   └── docker-prod/    # Production Docker
+├── deployment/          # Docker build files
+└── data/
+    ├── presets.yaml    # Filter presets
+    ├── input/          # GPX files
+    └── output/         # Generated results
+```
+
+### Key Technologies
+
+**Backend:**
+- Python 3.x with Flask for REST API
+- pandas + openpyxl for Excel export
+- Folium for map generation
+- pyproj for geodesic calculations
+- Overpass API for OSM queries
+
+**Frontend:**
+- React 18 + TypeScript
+- Vite for fast development
+- Leaflet + React-Leaflet for interactive maps
+- Socket.IO for real-time updates
+- Axios for API communication
+
+**Infrastructure:**
+- Docker Compose for containerization
+- Nginx for production reverse proxy
+
+---
+
 ## ✨ Key Features
 
 - **🗺️ Map-first interface** - See your track and POIs continuously
@@ -102,22 +164,9 @@ Build your own using OpenStreetMap tags (e.g., `amenity=restaurant`, `shop=bicyc
 
 ---
 
-## 🏗️ Architecture
-
-AlongGPX queries OpenStreetMap via the Overpass API:
-
-1. **Parse GPX** - Extract track coordinates and calculate total distance
-2. **Query Overpass** - Search for POIs in circles along your route
-3. **Filter results** - Apply include/exclude rules, calculate distances
-4. **Export** - Generate Excel spreadsheet and interactive Folium map
-
-All processing happens server-side. Results are cached for quick downloads.
-
----
-
 ## ⚙️ Configuration
 
-AlongGPX is configured via environment variables. See [deployment/.env](deployment/.env) for available options:
+AlongGPX is configured via environment variables. See respective configuration directories for available options:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -132,11 +181,14 @@ AlongGPX is configured via environment variables. See [deployment/.env](deployme
 
 ## 📖 Documentation
 
-- **[Quick Start (Docker)](deployment/QUICKSTART.md)** - Production deployment with local builds
-- **[Development Setup](docs/quickstart-dev.md)** - Local dev with Vite & Docker
-- **[CLI Usage](docs/quickstart-cli.md)** - Command-line batch processing
-- **[Frontend Architecture](docs/FRONTEND.md)** - React/TypeScript details
-- **[Quick Reference](FRONTEND_QUICKREF.md)** - Developer cheat sheet
+### Usage Guides
+- **[Docker Production](config/docker-prod/README.md)** - Self-hosted production deployment
+- **[Docker Development](config/docker-dev/README.md)** - Development with hot reload
+- **[Local Development](config/local-dev/README.md)** - Local Flask + Vite setup
+- **[CLI Usage](config/cli/README.md)** - Command-line batch processing
+
+### Technical Documentation
+- **[FRONTEND.md](FRONTEND.md)** - Frontend architecture, component design, API integration, and development guide
 
 ---
 
@@ -144,21 +196,24 @@ AlongGPX is configured via environment variables. See [deployment/.env](deployme
 
 Contributions welcome! Please open an issue first to discuss major changes.
 
-### Development
+### Development Setup
 
 ```bash
 # Clone repository
 git clone https://github.com/rikmueller/alonggpx.git
-cd alonggpx/deployment
 
-# Configure environment
+# Option 1: Local development (fastest iteration)
+cd alonggpx
+python3 backend/api/app.py &
+cd frontend && npm install && npm run dev
+
+# Option 2: Docker development (matches production)
+cd config/docker-dev
 cp .env.example .env
-
-# Start development environment with hot reload
-docker compose -f docker-compose.dev.yml up
+docker compose up
 ```
 
-See [docs/quickstart-dev.md](docs/quickstart-dev.md) for detailed setup instructions.
+See [config/local-dev/README.md](config/local-dev/README.md) or [config/docker-dev/README.md](config/docker-dev/README.md) for detailed setup instructions.
 
 ---
 

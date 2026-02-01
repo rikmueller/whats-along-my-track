@@ -119,6 +119,6 @@ chmod 777 ../../data/output  # If needed
 
 ## See Also
 
-- [../../deployment/README.md](../../deployment/README.md) - Dockerfile details
-- [../../docs/quickstart-docker.md](../../docs/quickstart-docker.md) - Detailed Docker guide
+- [Main README](../../README.md) - Project overview
+- [deployment/](../../deployment/) - Dockerfile details
 - [docker-compose.yml](./docker-compose.yml) - Service configuration

@@ -4,17 +4,30 @@ This directory contains configuration for **CLI standalone usage** of AlongGPX.
 
 ## Quick Start
 
-1. **Copy the example configuration:**
+1. **Set up Python environment:**
+   ```bash
+   # Create virtual environment
+   python3 -m venv venv
+   
+   # Activate it
+   source venv/bin/activate  # Linux/Mac
+   # or on Windows: venv\Scripts\activate
+   
+   # Install dependencies
+   pip install -r deployment/requirements-cli.txt
+   ```
+
+2. **Copy the example configuration:**
    ```bash
    cp config/cli/.env.example config/cli/.env
    ```
 
-2. **Edit `config/cli/.env`** with your preferences:
+3. **Edit `config/cli/.env`** with your preferences:
    - Set `ALONGGPX_PROJECT_NAME` for output file naming
    - Adjust `ALONGGPX_RADIUS_KM` for search radius
    - Configure filters or presets
 
-3. **Run the CLI:**
+4. **Run the CLI:**
    ```bash
    python3 cli/main.py --gpx-file data/input/myroute.gpx --preset camp_sites_tent
    ```
@@ -61,4 +74,3 @@ Results are saved to `data/output/`:
 
 - [Main README](../../README.md) - Project overview
 - [data/presets.yaml](../../data/presets.yaml) - Available presets
-- [docs/quickstart-cli.md](../../docs/quickstart-cli.md) - Detailed CLI guide

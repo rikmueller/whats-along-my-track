@@ -115,6 +115,7 @@ chmod 777 ../../data/output
 
 ## See Also
 
-- [../../docs/quickstart-dev.md](../../docs/quickstart-dev.md) - Local development guide
-- [../../frontend/README.md](../../frontend/README.md) - Frontend architecture
+- [Main README](../../README.md) - Project overview
+- [FRONTEND.md](../../FRONTEND.md) - Frontend architecture and development guide
+- [config/local-dev](../local-dev/) - Non-Docker local development
 - [docker-compose.yml](./docker-compose.yml) - Service configuration
