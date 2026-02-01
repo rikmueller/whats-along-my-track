@@ -42,33 +42,11 @@ Build your own using OpenStreetMap tags (e.g., `amenity=restaurant`, `shop=bicyc
 
 ---
 
-## ⚠️ Development Status
 
-This project is under active development. Features and APIs may change. Documentation may lag behind implementation. Use at your own risk for production workloads.
+## 🚀 Getting Started on your machine
 
-**Current focus:** Stabilizing Docker deployment and improving UI/UX.
-
----
-
-
-## 🚀 Getting Started
-
-AlongGPX offers **four ways to run** the application, depending on your needs:
-
-### 🌐 Web Interface (Recommended)
-
-**Use online:** Visit [along-gpx.de](https://along-gpx.de) - no installation required
-
-**Self-host with Docker:**
-```bash
-git clone https://github.com/rikmueller/alonggpx.git
-cd alonggpx/config/docker-prod
-cp .env.example .env
-docker compose up -d
-```
-Open http://localhost:3000
-
-📖 Full guide: [config/docker-prod/README.md](config/docker-prod/README.md)
+You don't want to use along-gpx.de, but rather your own setup?
+AlongGPX offers **four ways to run** the application on your machine, depending on your needs.
 
 ### ⌨️ Command-Line Interface
 
@@ -92,7 +70,7 @@ cd frontend && npm run dev
 
 📖 Development setup: [config/local-dev/README.md](config/local-dev/README.md)
 
-### 🐳 Docker Development
+### 🐳 Docker Development (Dev-Setup with hot reload)
 
 Development environment with hot reload:
 ```bash
@@ -103,6 +81,19 @@ docker compose up
 📖 Docker dev guide: [config/docker-dev/README.md](config/docker-dev/README.md)
 
 ---
+
+### 🌐 Docker Production 
+
+**Self-host with Docker:**
+```bash
+git clone https://github.com/rikmueller/alonggpx.git
+cd alonggpx/config/docker-prod
+cp .env.example .env
+docker compose up -d
+```
+Open http://localhost:3000
+
+📖 Full guide: [config/docker-prod/README.md](config/docker-prod/README.md)
 
 ## 🏗️ Project Structure
 
@@ -215,5 +206,12 @@ Built with amazing open-source projects:
 
 Inspired by **[GPX Studio](https://gpx.studio/)** ❤️
 
+---
+
+## ⚠️ Development Status
+
+This project is under active development. Features and APIs may change. Documentation may lag behind implementation. Use at your own risk for production workloads.
+
+**Current focus:** Stabilizing Docker deployment and improving UI/UX.
 
 
