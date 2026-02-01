@@ -116,24 +116,30 @@ AlongGPX is configured via environment variables. See respective configuration d
 You don't want to use along-gpx.de, but rather your own setup?
 AlongGPX offers **four ways to run** the application on your machine, depending on your needs.
 
-### ⌨️ Command-Line Interface
+To start, clone the repository:
+```bash
+git clone https://github.com/rikmueller/along-gpx.git
+```
+And decide on a flavor:
+
+### 3.1 Command-Line Interface ⌨️
 
 For batch processing and automation:
 📖 Setup instructions: [config/cli/README.md](config/cli/README.md)
 
-### 💻 Local Development
+### 3.2 Local Development 💻
 
 Run backend and frontend locally for development:
 📖 Development setup: [config/local-dev/README.md](config/local-dev/README.md)
 
-### 🐳 Docker Development (Dev-Setup with hot reload)
+### 3.3 Docker Development (Dev-Setup with hot reload) 🐳 
 
 Development environment with hot reload:
 📖 Docker dev guide: [config/docker-dev/README.md](config/docker-dev/README.md)
 
-### 🌐 Docker Production 
+### 3.4 Docker Production 🌐
 
-Production environment with hot reload:
+Production environment:
 📖 Docker prod guide: [config/docker-prod/README.md](config/docker-prod/README.md)
 
 ---
