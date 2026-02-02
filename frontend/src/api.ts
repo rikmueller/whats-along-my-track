@@ -58,15 +58,24 @@ export const apiClient = {
   },
 
   async startProcessing(
-    file: File,
+    file: File | null,
     projectName: string,
     radiusKm: number,
     includes: string[],
     excludes: string[],
-    presets: string[] = []
+    presets: string[] = [],
+    markerPosition: [number, number] | null = null,
   ): Promise<{ job_id: string; status_url: string }> {
     const formData = new FormData()
-    formData.append('file', file)
+    
+    // Add file or marker position based on input mode
+    if (file) {
+      formData.append('file', file)
+    } else if (markerPosition) {
+      formData.append('marker_lat', markerPosition[0].toString())
+      formData.append('marker_lon', markerPosition[1].toString())
+    }
+    
     formData.append('project_name', projectName)
     formData.append('radius_km', radiusKm.toString())
     includes.forEach((inc) => formData.append('include', inc))

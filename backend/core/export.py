@@ -1,7 +1,7 @@
 import os
 
 
-def export_to_excel(df, output_path: str, project_name: str, filename: str = None) -> str:
+def export_to_excel(df, output_path: str, project_name: str, filename: str = None, track_points: list = None) -> str:
     """
     Export the DataFrame as an Excel file.
     
@@ -10,6 +10,7 @@ def export_to_excel(df, output_path: str, project_name: str, filename: str = Non
         output_path: Output directory path
         project_name: Project name (unused, kept for compatibility)
         filename: Filename to use (e.g., UUID-based). If None, uses project_name.xlsx
+        track_points: List of track points to detect marker mode (optional)
     
     Returns:
         Full path to the exported Excel file
@@ -22,6 +23,12 @@ def export_to_excel(df, output_path: str, project_name: str, filename: str = Non
     elif not filename.endswith('.xlsx'):
         filename = f"{filename}.xlsx"
     
+    # Drop 'Kilometers from start' column in marker mode (single-point track)
+    export_df = df.copy()
+    if track_points and len(track_points) < 2:
+        if 'Kilometers from start' in export_df.columns:
+            export_df = export_df.drop(columns=['Kilometers from start'])
+    
     excel_path = os.path.join(output_path, filename)
-    df.to_excel(excel_path, index=False)
+    export_df.to_excel(excel_path, index=False)
     return excel_path

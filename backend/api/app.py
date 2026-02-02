@@ -306,7 +306,7 @@ cleanup_thread = threading.Thread(target=_cleanup_loop, daemon=True)
 cleanup_thread.start()
 
 
-def process_gpx_async(job_id: str, config: dict, temp_gpx_path: str, form_presets, form_includes, form_excludes):
+def process_gpx_async(job_id: str, config: dict, temp_gpx_path: str, form_presets, form_includes, form_excludes, marker_track_points=None):
     """Run pipeline in background thread."""
     def on_progress(percent: float, message: str):
         update_job(job_id, state='processing', percent=int(percent), message=message)
@@ -316,7 +316,13 @@ def process_gpx_async(job_id: str, config: dict, temp_gpx_path: str, form_preset
         excel_uuid = f"{uuid.uuid4()}.xlsx"
         html_uuid = f"{uuid.uuid4()}.html"
         
-        track_points = load_gpx_track(temp_gpx_path)
+        # Use marker track points if provided (marker mode), otherwise load from GPX
+        if marker_track_points:
+            track_points = marker_track_points
+            logger.info(f"Processing marker-based search at {track_points[0]}")
+        else:
+            track_points = load_gpx_track(temp_gpx_path)
+            
         update_job(job_id, state='processing', percent=5, message='Starting pipeline...')
         result = run_pipeline(
             config,
@@ -326,12 +332,17 @@ def process_gpx_async(job_id: str, config: dict, temp_gpx_path: str, form_preset
             progress_callback=on_progress,
             excel_filename=excel_uuid,
             html_filename=html_uuid,
+            track_points_override=track_points,
         )
         geojson = build_geojson(track_points, result.get('dataframe'))
-        try:
-            os.remove(temp_gpx_path)
-        except Exception as e:
-            logger.warning(f"Could not delete temp GPX: {e}")
+        
+        # Clean up temp GPX file if it exists
+        if temp_gpx_path:
+            try:
+                os.remove(temp_gpx_path)
+            except Exception as e:
+                logger.warning(f"Could not delete temp GPX: {e}")
+                
         update_job(
             job_id,
             state='completed',
@@ -422,6 +433,7 @@ def get_config():
             'presets_detail': {name: p for name, p in presets.items()},
             'marker_color_palette': APP_CONFIG['map'].get('marker_color_palette', []),
             'default_marker_color': APP_CONFIG['map'].get('default_marker_color', 'gray'),
+            'track_color': APP_CONFIG['map'].get('track_color', 'blue'),
         }), 200
     except Exception as e:
         logger.error(f"Config fetch failed: {e}")
@@ -443,18 +455,34 @@ def get_status(job_id: str):
 @app.route('/api/process', methods=['POST'])
 def process_gpx():
     try:
-        if 'file' not in request.files:
-            return jsonify({'error': 'No file provided'}), 400
-        file = request.files['file']
-        if file.filename == '':
-            return jsonify({'error': 'Empty filename'}), 400
-        if not allowed_file(file.filename):
-            return jsonify({'error': 'Only .gpx files allowed'}), 400
-        # Use UUID to ensure unique temp filename (avoid collisions)
-        temp_filename = f"{uuid.uuid4()}.gpx"
-        temp_gpx_path = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
-        file.save(temp_gpx_path)
-        logger.info(f"Processing GPX: {temp_gpx_path}")
+        # Check if this is marker mode or GPX file mode
+        marker_lat = request.form.get('marker_lat')
+        marker_lon = request.form.get('marker_lon')
+        
+        if marker_lat and marker_lon:
+            # Marker mode - create single-point track
+            temp_gpx_path = None
+            try:
+                lat = float(marker_lat)
+                lon = float(marker_lon)
+                track_points = [(lon, lat)]  # Single point track
+            except (ValueError, TypeError):
+                return jsonify({'error': 'Invalid marker coordinates'}), 400
+        else:
+            # GPX file mode
+            if 'file' not in request.files:
+                return jsonify({'error': 'No file provided'}), 400
+            file = request.files['file']
+            if file.filename == '':
+                return jsonify({'error': 'Empty filename'}), 400
+            if not allowed_file(file.filename):
+                return jsonify({'error': 'Only .gpx files allowed'}), 400
+            # Use UUID to ensure unique temp filename (avoid collisions)
+            temp_filename = f"{uuid.uuid4()}.gpx"
+            temp_gpx_path = os.path.join(app.config['UPLOAD_FOLDER'], temp_filename)
+            file.save(temp_gpx_path)
+            logger.info(f"Processing GPX: {temp_gpx_path}")
+            track_points = None  # Will be loaded in process_gpx_async
         
         # Build config from APP_CONFIG (environment variables)
         config = {
@@ -489,7 +517,7 @@ def process_gpx():
         update_job(job_id, temp_gpx_path=temp_gpx_path)
         thread = threading.Thread(
             target=process_gpx_async,
-            args=(job_id, config, temp_gpx_path, form_presets, form_includes, form_excludes),
+            args=(job_id, config, temp_gpx_path, form_presets, form_includes, form_excludes, track_points if marker_lat and marker_lon else None),
             daemon=True,
         )
         thread.start()

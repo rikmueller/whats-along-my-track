@@ -201,6 +201,9 @@ def build_folium_map(
     # Collect bounds from track and POIs for initial auto-fit
     bounds = [[lat, lon] for lon, lat in track_points] if track_points else []
 
+    # Detect marker mode (single-point track)
+    is_marker_mode = len(track_points) < 2
+
     # Get color palette and create filter-to-color mapping by rank
     color_palette = map_cfg.get("marker_color_palette", ["red", "orange", "purple", "green", "blue"])
     default_color = map_cfg.get("default_marker_color", "gray")
@@ -213,10 +216,11 @@ def build_folium_map(
 
     for _, row in df.iterrows():
         bounds.append([row["lat"], row["lon"]])
+        # Build popup HTML conditionally based on track mode
+        distance_from_start_html = "" if is_marker_mode else f"<b>Kilometers from start:</b> {row['Kilometers from start']}<br>"
         popup_html = f"""
         <b>{row['Name']}</b><br>
-        <b>Kilometers from start:</b> {row['Kilometers from start']}<br>
-        <b>Distance from track:</b> {row['Distance from track (km)']} km<br>
+        {distance_from_start_html}<b>Distance from track:</b> {row['Distance from track (km)']} km<br>
         <b>Filter:</b> {row.get('Matching Filter', 'N/A')}<br>
         <b>Website:</b> <a href="{row['Website']}" target="_blank">{row['Website']}</a><br>
         <b>Phone:</b> {row['Phone']}<br>

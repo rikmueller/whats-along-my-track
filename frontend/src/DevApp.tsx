@@ -96,9 +96,12 @@ function DevApp() {
   const [jobId, setJobId] = useState<string | null>(null)
   const [jobStatus, setJobStatus] = useState<JobStatus | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [notification, setNotification] = useState<string | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
   const [trackData, setTrackData] = useState<[number, number][]>([])
   const [poiData, setPoiData] = useState<MapPoi[]>([])
+  const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null)
+  const [inputMode, setInputMode] = useState<'track' | 'marker'>('track')
   const [sheetOpen, setSheetOpen] = useState(() => window.innerWidth >= 992)
   const [tileId, setTileId] = useState<string>(loadTilePreference())
   const [pulseFab, setPulseFab] = useState(() => window.innerWidth < 992)
@@ -214,6 +217,11 @@ function DevApp() {
     try {
       const trackPoints = await parseGPXFile(file)
       setTrackData(trackPoints)
+      setMarkerPosition(null) // Clear marker when track uploaded
+      setPoiData([]) // Clear POIs from previous run
+      setJobStatus(null) // Reset job status
+      setJobId(null) // Clear job ID
+      setInputMode('track')
       setError(null) // Clear any previous errors
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unable to parse GPX file - please check file format'
@@ -226,11 +234,71 @@ function DevApp() {
     setSettings((prev) => ({ ...prev, ...changes }))
   }
 
-  const handleStart = async () => {
-    if (!uploadedFile) {
-      setError('Please upload a GPX file')
-      return
+  const handleMarkerChange = (position: [number, number] | null) => {
+    setMarkerPosition(position)
+    if (position) {
+      setTrackData([]) // Clear track when marker placed
+      setUploadedFile(null)
+      setInputMode('marker')
+      setError(null)
     }
+  }
+
+  const handleClearMarker = () => {
+    setMarkerPosition(null)
+    setPoiData([]) // Clear POIs from previous run
+    setJobStatus(null) // Reset job status
+    setJobId(null) // Clear job ID
+    setInputMode('track')
+  }
+
+  const handleToggleMarkerMode = () => {
+    if (inputMode === 'marker') {
+      // Disable marker mode - clear marker and track, switch to track mode
+      setMarkerPosition(null)
+      setTrackData([])
+      setPoiData([]) // Clear POIs from previous run
+      setJobStatus(null) // Reset job status
+      setJobId(null) // Clear job ID
+      setInputMode('track')
+      setError(null)
+    } else {
+      // Enable marker mode - switch to marker mode (marker position will be set by map center)
+      // Clear track and uploaded file
+      setMarkerPosition(null) // Will be set by InteractiveMap based on current map center
+      setTrackData([])
+      setUploadedFile(null)
+      setPoiData([]) // Clear POIs from previous run
+      setJobStatus(null) // Reset job status
+      setJobId(null) // Clear job ID
+      setInputMode('marker')
+      setError(null)
+      
+      // On mobile, close settings panel so user can see the map and marker
+      if (window.innerWidth < 992) {
+        setSheetOpen(false)
+        setNotification('Please place the marker at the desired position and open the settings again.')
+        // Auto-dismiss notification after 5 seconds
+        const timer = setTimeout(() => setNotification(null), 5000)
+        return () => clearTimeout(timer)
+      }
+    }
+  }
+
+  const handleStart = async () => {
+    // Validate input based on mode
+    if (inputMode === 'track') {
+      if (!uploadedFile) {
+        setError('Please upload a GPX file')
+        return
+      }
+    } else if (inputMode === 'marker') {
+      if (!markerPosition) {
+        setError('Please place a marker on the map first')
+        return
+      }
+    }
+    
     if ((settings.includes || []).length === 0 && (settings.presets || []).length === 0) {
       setError('Please add at least one include filter or preset')
       return
@@ -242,6 +310,7 @@ function DevApp() {
 
     try {
       setError(null)
+      setJobStatus(null) // Reset job status when starting new processing
       setPoiData([]) // Clear only POIs, keep track visible
 
       const result = await apiClient.startProcessing(
@@ -251,6 +320,7 @@ function DevApp() {
         settings.includes,
         settings.excludes,
         settings.presets,
+        markerPosition,
       )
 
       setJobId(result.job_id)
@@ -273,6 +343,8 @@ function DevApp() {
     setTrackData([])
     setPoiData([])
     setUploadedFile(null)
+    setMarkerPosition(null)
+    setInputMode('track')
     setError(null)
     setSheetOpen(true)
     setSettings({
@@ -341,8 +413,15 @@ function DevApp() {
       const remainingPresets = settings.presets.filter((p) => !presetsToRemove.includes(p))
       
       // Get current manual filters (not from any preset)
-      const allPresetFilters = Object.values(presetsDetail).flatMap((p) => p?.include || [])
-      const currentManualFilters = settings.includes.filter((f) => !allPresetFilters.includes(f))
+      const allPresetIncludeFilters = Object.values(presetsDetail).flatMap((p) => p?.include || [])
+      const allPresetExcludeFilters = Object.values(presetsDetail).flatMap((p) => p?.exclude || [])
+      const currentManualIncludes = settings.includes.filter((f) => !allPresetIncludeFilters.includes(f))
+      const currentManualExcludes = settings.excludes.filter((f) => !allPresetExcludeFilters.includes(f))
+      
+      // Get exclude filters from removed presets that should be kept as manual
+      const excludeFiltersFromRemovedPresets = presetsToRemove.flatMap(
+        (p) => presetsDetail[p]?.exclude || []
+      )
       
       // Recalculate with remaining presets, keeping other filters from removed preset as manual
       const includesFromRemainingPresets = remainingPresets.flatMap(
@@ -355,8 +434,8 @@ function DevApp() {
       setSettings((prev) => ({
         ...prev,
         presets: remainingPresets,
-        includes: Array.from(new Set([...currentManualFilters, ...filtersFromRemovedPresets, ...includesFromRemainingPresets])),
-        excludes: Array.from(new Set([...prev.excludes.filter((f) => !allPresetFilters.includes(f)), ...excludesFromRemainingPresets])),
+        includes: Array.from(new Set([...currentManualIncludes, ...filtersFromRemovedPresets, ...includesFromRemainingPresets])),
+        excludes: Array.from(new Set([...currentManualExcludes, ...excludesFromRemainingPresets])),
       }))
     } else {
       // Filter was manually added, just remove it
@@ -412,10 +491,32 @@ function DevApp() {
 
   return (
     <div className={`dev-app ${sheetOpen ? 'sheet-open' : 'sheet-closed'}`}>
-      <BrandingHeader title="alongGPX" subtitle="Plan smarter along your track" />
+      <BrandingHeader title="along-gpx" subtitle="Plan smarter along your track" />
+      {notification && (
+        <div style={{
+          position: 'fixed',
+          top: '52%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'white',
+          color: '#1f2937',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          zIndex: 170,
+          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          maxWidth: '90vw',
+          textAlign: 'center',
+        }}>
+          {notification}
+        </div>
+      )}
       <InteractiveMap
         track={trackData}
         pois={poiData}
+        markerPosition={markerPosition}
+        onMarkerChange={handleMarkerChange}
+        inputMode={inputMode}
         tileSource={tileSource}
         tileOptions={TILE_SOURCES}
         onTileChange={setTileId}
@@ -428,6 +529,10 @@ function DevApp() {
         onSettingsChange={handleSettingsChange}
         onFileSelected={handleFileSelected}
         selectedFile={uploadedFile}
+        inputMode={inputMode}
+        markerPosition={markerPosition}
+        onClearMarker={handleClearMarker}
+        onToggleMarkerMode={handleToggleMarkerMode}
         onStart={handleStart}
         status={jobStatus}
         error={error}

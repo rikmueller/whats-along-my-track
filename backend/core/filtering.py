@@ -24,9 +24,14 @@ def filter_elements_and_build_rows(
     """
     transformer = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
     track_points_m = [transformer.transform(*p) for p in track_points]
-    track_line = LineString(track_points_m)
-    track_length_m_proj = track_line.length
     total_track_length_km = track_info["total_length_km"]
+
+    if len(track_points_m) >= 2:
+        track_line = LineString(track_points_m)
+        track_length_m_proj = track_line.length
+    else:
+        track_line = None
+        track_length_m_proj = 0.0
 
     # Use geodesic calculations for accurate distance measurements
     geod = Geod(ellps="WGS84")
@@ -75,30 +80,35 @@ def filter_elements_and_build_rows(
         min_distance_m = float('inf')
         cumulative_distance_km = 0
         closest_position_km = 0
-        
-        for i in range(len(track_points) - 1):
-            p1_lon, p1_lat = track_points[i]
-            p2_lon, p2_lat = track_points[i + 1]
-            
-            # Distance from POI to start of segment
-            _, _, dist_to_p1 = geod.inv(lon2, lat2, p1_lon, p1_lat)
-            
-            # Distance from POI to end of segment
-            _, _, dist_to_p2 = geod.inv(lon2, lat2, p2_lon, p2_lat)
-            
-            # Distance of this segment
-            _, _, segment_length = geod.inv(p1_lon, p1_lat, p2_lon, p2_lat)
-            
-            # Find closest point on this segment
-            if dist_to_p1 < min_distance_m:
-                min_distance_m = dist_to_p1
-                closest_position_km = cumulative_distance_km
-            
-            if dist_to_p2 < min_distance_m:
-                min_distance_m = dist_to_p2
-                closest_position_km = cumulative_distance_km + segment_length / 1000
-            
-            cumulative_distance_km += segment_length / 1000
+
+        if len(track_points) < 2:
+            p_lon, p_lat = track_points[0]
+            _, _, min_distance_m = geod.inv(lon2, lat2, p_lon, p_lat)
+            closest_position_km = 0
+        else:
+            for i in range(len(track_points) - 1):
+                p1_lon, p1_lat = track_points[i]
+                p2_lon, p2_lat = track_points[i + 1]
+                
+                # Distance from POI to start of segment
+                _, _, dist_to_p1 = geod.inv(lon2, lat2, p1_lon, p1_lat)
+                
+                # Distance from POI to end of segment
+                _, _, dist_to_p2 = geod.inv(lon2, lat2, p2_lon, p2_lat)
+                
+                # Distance of this segment
+                _, _, segment_length = geod.inv(p1_lon, p1_lat, p2_lon, p2_lat)
+                
+                # Find closest point on this segment
+                if dist_to_p1 < min_distance_m:
+                    min_distance_m = dist_to_p1
+                    closest_position_km = cumulative_distance_km
+                
+                if dist_to_p2 < min_distance_m:
+                    min_distance_m = dist_to_p2
+                    closest_position_km = cumulative_distance_km + segment_length / 1000
+                
+                cumulative_distance_km += segment_length / 1000
 
         if min_distance_m > radius_km * 1000:
             continue

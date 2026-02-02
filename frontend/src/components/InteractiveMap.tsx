@@ -30,6 +30,9 @@ export type MapPoi = {
 type Props = {
   track: [number, number][]
   pois: MapPoi[]
+  markerPosition: [number, number] | null
+  onMarkerChange: (position: [number, number] | null) => void
+  inputMode: 'track' | 'marker'
   tileSource: TileSource
   tileOptions: TileSource[]
   onTileChange: (id: string) => void
@@ -89,32 +92,49 @@ function createColoredIcon(color: string, fallback: string) {
 
 function createStartStopIcon(type: 'start' | 'end') {
   const isStart = type === 'start'
-  const color = isStart ? '#16a34a' : '#dc2626'
+  const color = isStart ? 'green' : 'red'
+  const markerColor = normalizeMarkerColor(color, 'blue')
+  // Use hex colors to cover the white dot
+  const bgColor = isStart ? '#16a34a' : '#dc2626'
   const Icon = isStart ? Play : Square
-  const iconMarkup = renderToStaticMarkup(<Icon size={14} strokeWidth={2.5} fill="white" stroke="white" />)
+  const iconSize = 14
+  // Slight left adjustment for stop icon
+  const leftPos = isStart ? '50%' : 'calc(50% - 0.25px)'
+  const iconMarkup = renderToStaticMarkup(<Icon size={iconSize} strokeWidth={2.5} fill="white" stroke="white" />)
   
   return L.divIcon({
-    className: 'start-stop-icon',
+    className: 'start-stop-pin-icon',
     html: `
-      <div style="
-        position: relative;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: ${color};
-        border: 2px solid #ffffff;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.35);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-      ">
-        ${iconMarkup}
+      <div style="position: relative; width: 25px; height: 41px;">
+        <img 
+          src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png" 
+          style="width: 25px; height: 41px; display: block; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
+        />
+        <div style="
+          position: absolute;
+          top: 13px;
+          left: ${leftPos};
+          transform: translate(-50%, -50%);
+          width: 18px;
+          height: 18px;
+          background: ${bgColor};
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        ">
+          ${iconMarkup}
+        </div>
       </div>
+      <img 
+        src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png" 
+        style="position: absolute; left: 0; top: 0; width: 41px; height: 41px; z-index: -1;"
+      />
     `,
-    iconSize: [30, 30],
-    iconAnchor: [15, 15],
-    popupAnchor: [0, -14],
-    tooltipAnchor: [0, -14],
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41],
   })
 }
 
@@ -277,17 +297,21 @@ function FitBounds({ track, pois }: { track: [number, number][]; pois: MapPoi[] 
   return null
 }
 
-function RecenterButton({ track, pois }: { track: [number, number][]; pois: MapPoi[] }) {
+function RecenterButton({ track, pois, markerPosition }: { track: [number, number][]; pois: MapPoi[]; markerPosition: [number, number] | null }) {
   const map = useMap()
   const hasTrack = track.length > 0
   const hasPois = pois.length > 0
-  const hasAny = hasTrack || hasPois
+  const hasMarker = markerPosition !== null
+  const hasAny = hasTrack || hasPois || hasMarker
 
-  const handleRecenter = () => {
+  const handleRecenter = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (!hasAny) return
     const points: [number, number][] = []
     track.forEach(([lon, lat]) => points.push([lat, lon]))
     pois.forEach((p) => points.push([p.coords[1], p.coords[0]]))
+    if (markerPosition) points.push([markerPosition[0], markerPosition[1]])
+    
     const bounds = L.latLngBounds(points as L.LatLngExpression[])
     
     // Force recalculation of map size (crucial for mobile)
@@ -301,7 +325,7 @@ function RecenterButton({ track, pois }: { track: [number, number][]; pois: MapP
       map.fitBounds(bounds, {
         paddingTopLeft: [padLeft, padTop],
         paddingBottomRight: [padRight, padBottom],
-        maxZoom: 14, // Prevent excessive zoom-in on mobile
+        maxZoom: 14, // Prevent excessive zoom-in on mobile (applies to single points too)
         animate: true,
       })
     }, 10)
@@ -344,7 +368,8 @@ function LocateButton() {
     }
   }, [map])
 
-  const handleLocate = () => {
+  const handleLocate = (e: React.MouseEvent) => {
+    e.stopPropagation()
     if (isLocating) return
     setIsLocating(true)
     map.locate({
@@ -421,29 +446,116 @@ function TileSelector({ tileOptions, value, onChange }: { tileOptions: TileSourc
   )
 }
 
-export default function InteractiveMap({ track, pois, tileSource, tileOptions, onTileChange }: Props) {
+function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number) => void }) {
+  const map = useMap()
+
+  useEffect(() => {
+    const handleClick = (e: L.LeafletMouseEvent) => {
+      // Ignore clicks on buttons or control elements
+      const target = e.originalEvent?.target as HTMLElement
+      if (target && (target.closest('button') || target.closest('.leaflet-control'))) {
+        return
+      }
+      onMapClick(e.latlng.lat, e.latlng.lng)
+    }
+
+    map.on('click', handleClick)
+
+    return () => {
+      map.off('click', handleClick)
+    }
+  }, [map, onMapClick])
+
+  return null
+}
+
+export default function InteractiveMap({ track, pois, markerPosition, onMarkerChange, inputMode, tileSource, tileOptions, onTileChange }: Props) {
   const initialCenter: [number, number] = [49.0069, 8.4037] // fallback Karlsruhe
   const [colorPalette, setColorPalette] = useState<string[]>(DEFAULT_COLOR_PALETTE)
+  const [trackColor, setTrackColor] = useState<string>('#2563eb')
+  const markerRef = useRef<L.Marker>(null)
 
-  // Load color palette from config on mount
+  // Handle map click to place or reposition marker
+  const handleMapClick = (lat: number, lon: number) => {
+    // In marker mode, clicking map places or repositions marker
+    if (inputMode === 'marker') {
+      onMarkerChange([lat, lon])
+    }
+  }
+
+  // Handle marker drag to update position
+  const handleMarkerDrag = () => {
+    if (markerRef.current) {
+      const pos = markerRef.current.getLatLng()
+      onMarkerChange([pos.lat, pos.lng])
+    }
+  }
+
+  // Create marker icon using track color
+  const markerIcon = useMemo(() => {
+    // Use same design as start pin - green with Play icon
+    const color = 'green'
+    const markerColor = normalizeMarkerColor(color, 'blue')
+    const bgColor = '#16a34a'
+    const iconSize = 14
+    const iconMarkup = renderToStaticMarkup(<Play size={iconSize} strokeWidth={2.5} fill="white" stroke="white" />)
+    
+    return L.divIcon({
+      className: 'search-marker-icon',
+      html: `
+        <div style="position: relative; width: 25px; height: 41px;">
+          <img 
+            src="https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-${markerColor}.png" 
+            style="width: 25px; height: 41px; display: block; image-rendering: -webkit-optimize-contrast; image-rendering: crisp-edges;"
+          />
+          <div style="
+            position: absolute;
+            top: 13px;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 18px;
+            height: 18px;
+            background: ${bgColor};
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          ">
+            ${iconMarkup}
+          </div>
+        </div>
+        <img 
+          src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/images/marker-shadow.png" 
+          style="position: absolute; left: 0; top: 0; width: 41px; height: 41px; z-index: -1;"
+        />
+      `,
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41],
+    })
+  }, [])
+
+  // Load color palette and track color from config on mount
   useEffect(() => {
-    const loadPalette = async () => {
+    const loadConfig = async () => {
       try {
         const config = await apiClient.getConfig()
-        // The config response includes presets_detail with marker_color_palette data
-        if (config.defaults && config as any) {
-          // Extract palette from config - look for it in the response
-          const response = config as any
-          if (response.marker_color_palette && Array.isArray(response.marker_color_palette)) {
-            setColorPalette(response.marker_color_palette)
-          }
+        // Extract palette and track color from config
+        const response = config as any
+        if (response.marker_color_palette && Array.isArray(response.marker_color_palette)) {
+          setColorPalette(response.marker_color_palette)
+        }
+        if (response.track_color) {
+          setTrackColor(response.track_color)
         }
       } catch (err) {
-        console.debug('Could not load config palette, using defaults', err)
+        console.debug('Could not load config, using defaults', err)
         setColorPalette(DEFAULT_COLOR_PALETTE)
+        setTrackColor('#2563eb')
       }
     }
-    loadPalette()
+    loadConfig()
   }, [])
 
   // Automatic geolocation detection disabled to prevent browser popup
@@ -461,6 +573,21 @@ export default function InteractiveMap({ track, pois, tileSource, tileOptions, o
     return map
   }, [pois, colorPalette])
 
+  // Helper component to center marker on map when switching to marker mode
+  function MarkerModeSwitchHandler({ onMarkerChange, inputMode, markerPosition }: { onMarkerChange: (pos: [number, number]) => void; inputMode: string; markerPosition: [number, number] | null }) {
+    const map = useMap()
+    
+    useEffect(() => {
+      if (inputMode === 'marker' && markerPosition === null) {
+        // Just switched to marker mode without a marker - place at map center
+        const center = map.getCenter()
+        onMarkerChange([center.lat, center.lng])
+      }
+    }, [inputMode, markerPosition, onMarkerChange, map])
+    
+    return null
+  }
+
   return (
     <div className="map-wrapper">
       <MapContainer
@@ -470,8 +597,31 @@ export default function InteractiveMap({ track, pois, tileSource, tileOptions, o
         zoomControl={true}
       >
         <TileLayer url={tileSource.url} attribution={tileSource.attribution} />
+        <MapClickHandler onMapClick={handleMapClick} />
+        <MarkerModeSwitchHandler onMarkerChange={onMarkerChange} inputMode={inputMode} markerPosition={markerPosition} />
+        
+        {/* User-placed marker (draggable) - only visible in marker mode */}
+        {markerPosition && inputMode === 'marker' && (
+          <Marker
+            position={[markerPosition[0], markerPosition[1]]}
+            icon={markerIcon}
+            draggable={true}
+            ref={markerRef}
+            eventHandlers={{
+              dragend: handleMarkerDrag,
+            }}
+          >
+            <Popup>
+              <div>
+                <strong>Search Center</strong><br />
+                {markerPosition[0].toFixed(5)}°N, {markerPosition[1].toFixed(5)}°E
+              </div>
+            </Popup>
+          </Marker>
+        )}
+        
         {polylineCoords.length > 0 && (
-          <Polyline positions={polylineCoords as L.LatLngExpression[]} pathOptions={{ color: '#2563eb', weight: 3 }} />
+          <Polyline positions={polylineCoords as L.LatLngExpression[]} pathOptions={{ color: trackColor, weight: 3 }} />
         )}
         {polylineCoords.length > 0 && (
           <>
@@ -559,7 +709,7 @@ export default function InteractiveMap({ track, pois, tileSource, tileOptions, o
         <FitBounds track={track} pois={pois} />
         <ScaleControl />
         <LocateButton />
-        <RecenterButton track={track} pois={pois} />
+        <RecenterButton track={track} pois={pois} markerPosition={markerPosition} />
         <TileSelector tileOptions={tileOptions} value={tileSource.id} onChange={onTileChange} />
       </MapContainer>
     </div>

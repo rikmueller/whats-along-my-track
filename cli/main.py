@@ -135,6 +135,7 @@ def run_pipeline(
     progress_callback=None,
     excel_filename: str | None = None,
     html_filename: str | None = None,
+    track_points_override: list | None = None,
 ):
     """
     Core pipeline function that can be called from CLI or web app.
@@ -147,6 +148,7 @@ def run_pipeline(
         progress_callback: Callable(percent, message) for progress updates
         excel_filename: Optional filename for Excel output (UUID-based). If None, uses project_name.xlsx
         html_filename: Optional filename for HTML output (UUID-based). If None, uses project_name.html
+        track_points_override: Optional list of track points [(lon, lat), ...] to use instead of loading from GPX
     
     Returns:
         dict: Results containing paths to Excel and HTML files, dataframe, and metadata
@@ -180,8 +182,13 @@ def run_pipeline(
     )
 
     # Load GPX and prepare track
-    report_progress(10, "Loading GPX track...")
-    track_points = load_gpx_track(config["input"]["gpx_file"])
+    report_progress(10, "Loading track...")
+    if track_points_override:
+        track_points = track_points_override
+        logger.info(f"Using provided track points: {len(track_points)} points")
+    else:
+        track_points = load_gpx_track(config["input"]["gpx_file"])
+    
     track_info = compute_track_metrics(track_points)
     report_progress(
         20,
@@ -224,6 +231,7 @@ def run_pipeline(
         output_path=config["project"]["output_path"],
         project_name=config["project"]["name"],
         filename=excel_filename,
+        track_points=track_points,
     )
     report_progress(90, "Excel exported. Building map...")
 

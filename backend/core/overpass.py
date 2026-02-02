@@ -84,24 +84,29 @@ def query_overpass_segmented(
 
     transformer = Transformer.from_crs("EPSG:4326", "EPSG:3857", always_xy=True)
     track_points_m = [transformer.transform(*p) for p in track_points]
-    track_line = LineString(track_points_m)
 
     total_track_length_km = track_info["total_length_km"]
-    track_length_m_proj = track_line.length
 
-    def point_at_km(km):
-        m = (km / total_track_length_km) * track_length_m_proj
-        x, y = track_line.interpolate(m).xy
-        lon, lat = transformer.transform(x[0], y[0], direction="INVERSE")
-        return lon, lat
+    # Marker mode (single point) - no interpolation needed
+    if len(track_points) < 2:
+        query_points = [track_points[0]]
+    else:
+        track_line = LineString(track_points_m)
+        track_length_m_proj = track_line.length
 
-    # Calculate all query points along the track
-    num_steps = math.ceil(total_track_length_km / step_km)
-    query_points = []
-    for step in range(num_steps + 1):
-        km = min(step * step_km, total_track_length_km)
-        lon, lat = point_at_km(km)
-        query_points.append((lon, lat))
+        def point_at_km(km):
+            m = (km / total_track_length_km) * track_length_m_proj
+            x, y = track_line.interpolate(m).xy
+            lon, lat = transformer.transform(x[0], y[0], direction="INVERSE")
+            return lon, lat
+
+        # Calculate all query points along the track
+        num_steps = math.ceil(total_track_length_km / step_km)
+        query_points = []
+        for step in range(num_steps + 1):
+            km = min(step * step_km, total_track_length_km)
+            lon, lat = point_at_km(km)
+            query_points.append((lon, lat))
 
     # Calculate batch size based on batch_km configuration
     batch_km = overpass_cfg.get("batch_km", 50)  # Default 50km per batch
