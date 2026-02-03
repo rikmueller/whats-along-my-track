@@ -1,4 +1,4 @@
-# AlongGPX Docker Development Configuration
+# WhatsAround Docker Development Configuration
 
 This directory contains configuration for **Docker development mode** with hot reload for both frontend and backend.
 
@@ -68,7 +68,7 @@ To access from another device on your network:
 
 2. **Update `.env`:**
    ```bash
-   ALONGGPX_HOSTNAME=192.168.1.100
+   WA_HOSTNAME=192.168.1.100
    ```
 
 3. **Restart containers:**
@@ -100,7 +100,7 @@ docker compose logs -f frontend  # Frontend only
 ## Troubleshooting
 
 ### HMR not working
-Check `ALONGGPX_HOSTNAME` matches your access method:
+Check `WA_HOSTNAME` matches your access method:
 - Local: `localhost`
 - Remote: Your machine's IP address
 

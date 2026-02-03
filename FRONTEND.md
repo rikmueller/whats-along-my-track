@@ -1,6 +1,6 @@
 # Web Frontend Development Guide
 
-This document describes the new web frontend for AlongGPX and how it integrates with the existing infrastructure.
+This document describes the new web frontend for WhatsAround and how it integrates with the existing infrastructure.
 
 ## Architecture Overview
 
@@ -16,7 +16,7 @@ This document describes the new web frontend for AlongGPX and how it integrates 
 │                                            │                        │
 │                                            ↓                        │
 │                                    ┌────────────────┐               │
-│                                    │ AlongGPX Core  │               │
+│                                    │ WhatsAround    │               │
 │                                    │   Pipeline     │               │
 │                                    └────────────────┘               │
 │                                            │                        │
@@ -221,5 +221,5 @@ The DevApp provides a **map-first interface** where users see their GPX track im
 ### Job stuck in "processing"
 - Check Flask logs: `docker-compose logs -f app`
 - Long-running Overpass queries or dense regions slow things down
-- Increase `ALONGGPX_BATCH_KM` environment variable to reduce API calls
+- Increase `WA_BATCH_KM` environment variable to reduce API calls
 

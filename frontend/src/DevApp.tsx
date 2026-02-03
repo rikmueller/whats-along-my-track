@@ -38,7 +38,7 @@ const TILE_SOURCES: TileSource[] = [
   },
 ]
 
-const LOCAL_STORAGE_TILE_KEY = 'alonggpx.tile'
+const LOCAL_STORAGE_TILE_KEY = 'whatsaround.tile'
 
 function loadTilePreference(): string {
   if (typeof window === 'undefined') return TILE_SOURCES[0].id
@@ -491,8 +491,8 @@ function DevApp() {
   return (
     <div className={`dev-app ${sheetOpen ? 'sheet-open' : 'sheet-closed'}`}>
       <BrandingHeader
-        title="along-gpx"
-        subtitle="Plan smarter along your track"
+        title="WhatsAround"
+        subtitle="Plan smarter nearby"
         onHelpClick={openHelpModal}
       />
       {notification && (

@@ -1,7 +1,7 @@
-# AlongGPX AI Coding Instructions
+# WhatsAround AI Coding Instructions
 
 ## Project Overview
-AlongGPX finds OpenStreetMap POIs along GPX tracks using Overpass API queries, then exports results to Excel and interactive Folium maps. Core use case: trip planning (e.g., finding campsites/water/shelters along a bikepacking route).
+WhatsAround finds OpenStreetMap POIs along GPX tracks using Overpass API queries, then exports results to Excel and interactive Folium maps. Core use case: trip planning (e.g., finding campsites/water/shelters along a bikepacking route).
 
 **Three Interfaces:**
 1. **Web UI** (React + TypeScript) - Modern browser-based interface with real-time progress
@@ -78,7 +78,7 @@ Real-time updates enabled if SocketIO initialization succeeds, graceful fallback
 
 ### Key Design Decisions
 - **WGS84 geodesic**: All distance calculations use `pyproj.Geod` for accuracy (not Euclidean)
-- **Batching**: Multiple search circles combined per Overpass call (controlled by `ALONGGPX_BATCH_KM` environment variable)
+- **Batching**: Multiple search circles combined per Overpass call (controlled by `WA_BATCH_KM` environment variable)
 - **Auto step_km**: Defaults to 60% of `radius_km` if not set
 - **Filter precedence**: CLI/API args override environment variable defaults entirely (not additive)
 - **Reusable pipeline**: `cli.main.run_pipeline()` callable from CLI or web backend
@@ -89,7 +89,7 @@ Real-time updates enabled if SocketIO initialization succeeds, graceful fallback
 ## Project Structure
 
 ```
-AlongGPX/
+WhatsAround/
 ├── cli/                         # Command-line interface
 │   ├── main.py                 # CLI entry + run_pipeline() export
 │   └── requirements-cli.txt    # CLI-specific deps
@@ -248,7 +248,7 @@ env_file:
 ### Local Development (Full Stack)
 ```bash
 # Terminal 1: Backend (Flask)
-cd /home/rik/AlongGPX
+cd /home/rik/WhatsAround
 python3 backend/api/app.py
 # Runs on http://localhost:5000
 
@@ -274,7 +274,7 @@ python3 cli/main.py \
   --include "amenity=drinking_water"
 
 # With environment overrides
-export ALONGGPX_RADIUS_KM=8
+export WA_RADIUS_KM=8
 python3 cli/main.py
 ```
 
@@ -346,7 +346,7 @@ my_preset:
 ## Common Gotchas
 
 1. **Filter order matters**: Marker colors assigned by include filter rank (1st=red, 2nd=orange, etc.)
-2. **Overpass timeouts**: Increase `ALONGGPX_BATCH_KM` environment variable to reduce queries, or decrease for dense areas
+2. **Overpass timeouts**: Increase `WA_BATCH_KM` environment variable to reduce queries, or decrease for dense areas
 3. **Empty results**: Check filter syntax (`key=value`), verify OSM data exists via [overpass-turbo.eu](https://overpass-turbo.eu/)
 4. **Duplicate POIs**: Deduplication by OSM ID in [overpass.py](../backend/core/overpass.py)
 5. **CLI from wrong directory**: Always run `python3 cli/main.py` from repo root
@@ -380,20 +380,20 @@ my_preset:
 - **lucide-react** - Icon library
 
 ### External Services
-- **Overpass API**: Multiple servers configured via `ALONGGPX_OVERPASS_SERVERS` environment variable, auto-retries with exponential backoff
+- **Overpass API**: Multiple servers configured via `WA_OVERPASS_SERVERS` environment variable, auto-retries with exponential backoff
 - **OSM tag reference**: [wiki.openstreetmap.org/wiki/Map_features](https://wiki.openstreetmap.org/wiki/Map_features)
 
 ## Environment Variables
 
 ### Shared (data/.env)
 ```
-ALONGGPX_PROJECT_NAME=MyProject
-ALONGGPX_OUTPUT_PATH=../data/output/
-ALONGGPX_RADIUS_KM=5
-ALONGGPX_STEP_KM=3
-ALONGGPX_BATCH_KM=50
-ALONGGPX_TIMEZONE=Europe/Berlin
-ALONGGPX_HOSTNAME=localhost  # For Vite HMR in Docker
+WA_PROJECT_NAME=MyProject
+WA_OUTPUT_PATH=../data/output/
+WA_RADIUS_KM=5
+WA_STEP_KM=3
+WA_BATCH_KM=50
+WA_TIMEZONE=Europe/Berlin
+WA_HOSTNAME=localhost  # For Vite HMR in Docker
 ```
 
 ### Backend (backend/api/.env)
@@ -445,13 +445,13 @@ FLASK_PORT=5000
 ### Python (calling run_pipeline directly)
 ```python
 import sys, os
-sys.path.insert(0, '/home/rik/AlongGPX')
+sys.path.insert(0, '/home/rik/WhatsAround')
 from cli.main import run_pipeline
 
 # Configuration is loaded from environment variables
 # Set environment variables before running:
-# export ALONGGPX_RADIUS_KM=10
-# export ALONGGPX_GPX_FILE=data/input/track.gpx
+# export WA_RADIUS_KM=10
+# export WA_GPX_FILE=data/input/track.gpx
 
 result = run_pipeline(
     cli_presets=['camp_basic'], 

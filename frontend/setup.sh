@@ -1,10 +1,10 @@
 #!/bin/bash
 
-# AlongGPX Web Frontend Quick Start
+# WhatsAround Web Frontend Quick Start
 
 set -e
 
-echo "🚀 AlongGPX Web Frontend Setup"
+echo "🚀 WhatsAround Web Frontend Setup"
 echo "=============================="
 echo ""
 

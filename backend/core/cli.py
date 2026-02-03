@@ -13,31 +13,31 @@ def parse_cli_args():
     parser.add_argument(
         "--project-name",
         type=str,
-        help="Project name (overrides ALONGGPX_PROJECT_NAME from cli/.env)",
+        help="Project name (overrides WA_PROJECT_NAME from cli/.env)",
     )
 
     parser.add_argument(
         "--output-path",
         type=str,
-        help="Output path (overrides ALONGGPX_OUTPUT_PATH from cli/.env)",
+        help="Output path (overrides WA_OUTPUT_PATH from cli/.env)",
     )
 
     parser.add_argument(
         "--gpx-file",
         type=str,
-        help="GPX file path (overrides ALONGGPX_GPX_FILE from cli/.env)",
+        help="GPX file path (overrides WA_GPX_FILE from cli/.env)",
     )
 
     parser.add_argument(
         "--radius-km",
         type=float,
-        help="Search radius in km (overrides ALONGGPX_RADIUS_KM)",
+        help="Search radius in km (overrides WA_RADIUS_KM)",
     )
 
     parser.add_argument(
         "--step-km",
         type=float,
-        help="Distance between query points in km (overrides ALONGGPX_STEP_KM)",
+        help="Distance between query points in km (overrides WA_STEP_KM)",
     )
 
     parser.add_argument(

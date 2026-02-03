@@ -1,4 +1,4 @@
-# Multi-stage build for AlongGPX web app
+# Multi-stage build for WhatsAround web app
 FROM python:3.11-slim AS base
 
 WORKDIR /app
@@ -43,8 +43,8 @@ COPY --from=base /usr/local/bin /usr/local/bin
 COPY --from=base /app .
 
 # Create non-root user for security
-RUN useradd -m -u 1000 alonggpx && chown -R alonggpx:alonggpx /app
-USER alonggpx
+RUN useradd -m -u 1000 whatsaround && chown -R whatsaround:whatsaround /app
+USER whatsaround
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \

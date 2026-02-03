@@ -1,4 +1,4 @@
-# AlongGPX Local Development Configuration
+# WhatsAround Local Development Configuration
 
 This directory contains configuration for **local development** with both Flask backend and Vite frontend running on your machine.
 
@@ -48,17 +48,6 @@ config/local-dev/.env (shared)
     └─> Vite (frontend/vite.config.ts)
 ```
 
-### Personal Overrides
-
-Create `frontend/.env.local` (git-ignored) for personal settings:
-
-```bash
-# Override backend URL for remote Flask instance
-VITE_BACKEND_URL=http://192.168.1.100:5000
-
-# Override HMR host for remote development
-ALONGGPX_HOSTNAME=192.168.1.100
-```
 
 ## How It Works
 

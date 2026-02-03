@@ -1,6 +1,6 @@
-# AlongGPX CLI Configuration
+# WhatsAround CLI Configuration
 
-This directory contains configuration for **CLI standalone usage** of AlongGPX.
+This directory contains configuration for **CLI standalone usage** of WhatsAround.
 
 ## Quick Start
 
@@ -23,8 +23,8 @@ This directory contains configuration for **CLI standalone usage** of AlongGPX.
    ```
 
 3. **Edit `config/cli/.env`** with your preferences:
-   - Set `ALONGGPX_PROJECT_NAME` for output file naming
-   - Adjust `ALONGGPX_RADIUS_KM` for search radius
+   - Set `WA_PROJECT_NAME` for output file naming
+   - Adjust `WA_RADIUS_KM` for search radius
    - Configure filters or presets
 
 4. **Run the CLI:**

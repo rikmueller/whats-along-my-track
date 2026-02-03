@@ -10,7 +10,7 @@ services:
     build:
       context: ../..
       dockerfile: deployment/Dockerfile.backend
-    container_name: alonggpx-backend-dev
+    container_name: whatsaround-backend-dev
     ports:
       - "5000:5000"
     env_file:
@@ -19,22 +19,22 @@ services:
       # Fixed configuration for Docker deployment
       - FLASK_PORT=5000
       - FLASK_ENV=development
-      - ALONGGPX_OUTPUT_PATH=/app/data/output
-      - ALONGGPX_PRESETS_FILE=/app/data/presets.yaml
+      - WA_OUTPUT_PATH=/app/data/output
+      - WA_PRESETS_FILE=/app/data/presets.yaml
       # Overpass API defaults (don't change unless you know what you're doing)
-      - ALONGGPX_OVERPASS_RETRIES=3
-      - ALONGGPX_BATCH_KM=50
-      - ALONGGPX_STEP_KM=
-      - ALONGGPX_OVERPASS_SERVERS=https://overpass.private.coffee/api/interpreter;https://overpass-api.de/api/interpreter;https://lz4.overpass-api.de/api/interpreter
+      - WA_OVERPASS_RETRIES=3
+      - WA_BATCH_KM=50
+      - WA_STEP_KM=
+      - WA_OVERPASS_SERVERS=https://overpass.private.coffee/api/interpreter;https://overpass-api.de/api/interpreter;https://lz4.overpass-api.de/api/interpreter
       # Cleanup defaults
-      - ALONGGPX_CLEANUP_INTERVAL_SECONDS=600
-      - ALONGGPX_JOB_TTL_SECONDS=21600
-      - ALONGGPX_TEMP_FILE_MAX_AGE_SECONDS=3600
-      - ALONGGPX_OUTPUT_RETENTION_DAYS=10
+      - WA_CLEANUP_INTERVAL_SECONDS=600
+      - WA_JOB_TTL_SECONDS=21600
+      - WA_TEMP_FILE_MAX_AGE_SECONDS=3600
+      - WA_OUTPUT_RETENTION_DAYS=10
       # Map defaults
-      - ALONGGPX_TRACK_COLOR=blue
-      - ALONGGPX_DEFAULT_MARKER_COLOR=gray
-      - ALONGGPX_MARKER_COLOR_PALETTE=orange;purple;blue;darkred;darkblue;darkgreen;cadetblue;pink
+      - WA_TRACK_COLOR=blue
+      - WA_DEFAULT_MARKER_COLOR=gray
+      - WA_MARKER_COLOR_PALETTE=orange;purple;blue;darkred;darkblue;darkgreen;cadetblue;pink
     volumes:
       - ../../cli:/app/cli
       - ../../backend:/app/backend
@@ -49,14 +49,14 @@ services:
     build:
       context: ../..
       dockerfile: deployment/Dockerfile.frontend-dev
-    container_name: alonggpx-frontend-dev
+    container_name: whatsaround-frontend-dev
     ports:
       - "3000:3000"
     env_file:
-      - .env  # Load ALONGGPX_HOSTNAME from .env
+      - .env  # Load WA_HOSTNAME from .env
     environment:
       - VITE_BACKEND_URL=http://app:5000
-      - ALONGGPX_HOSTNAME=${ALONGGPX_HOSTNAME:-localhost}
+      - WA_HOSTNAME=${WA_HOSTNAME:-localhost}
     volumes:
       - ../../frontend/src:/app/frontend/src
       - ../../frontend/index.html:/app/frontend/index.html
