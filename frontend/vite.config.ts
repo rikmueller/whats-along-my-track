@@ -24,7 +24,7 @@ const buildClientEnv = (vars: Record<string, string>) => {
     if (key.startsWith('VITE_')) {
       out[`import.meta.env.${key}`] = JSON.stringify(value)
     }
-    if (key.startsWith('ALONGGPX_')) {
+    if (key.startsWith('WA_')) {
       out[`import.meta.env.VITE_${key}`] = JSON.stringify(value)
     }
   }
@@ -35,8 +35,8 @@ export default defineConfig(({ mode }) => {
   const viteEnv = loadEnv(mode, process.cwd(), '')
   const env = { ...localDevEnv, ...viteEnv, ...personalEnv, ...process.env }
 
-  const allowedHosts = parseHosts(env.VITE_ALLOWED_HOSTS || env.ALONGGPX_HOSTNAME) || ['.']
-  const hmrHost = env.ALONGGPX_HOSTNAME || env.VITE_HMR_HOST
+  const allowedHosts = parseHosts(env.VITE_ALLOWED_HOSTS || env.WA_HOSTNAME) || ['.']
+  const hmrHost = env.WA_HOSTNAME || env.VITE_HMR_HOST
   const clientEnv = buildClientEnv(env as Record<string, string>)
   
   // Use environment variable for backend URL (Docker uses service name, local uses localhost)

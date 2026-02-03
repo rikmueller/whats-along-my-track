@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Flask web application for AlongGPX.
+Flask web application for WhatsAround.
 Provides REST API endpoints for GPX processing.
 """
 
@@ -109,22 +109,22 @@ def load_config_from_env() -> dict:
     
     config = {
         'project': {
-            'name': os.getenv('ALONGGPX_PROJECT_NAME', 'AlongGPX'),
-            'output_path': os.getenv('ALONGGPX_OUTPUT_PATH', './data/output'),
-            'timezone': os.getenv('ALONGGPX_TIMEZONE', 'UTC'),
+            'name': os.getenv('WA_PROJECT_NAME', 'MyProject'),
+            'output_path': os.getenv('WA_OUTPUT_PATH', './data/output'),
+            'timezone': os.getenv('WA_TIMEZONE', 'UTC'),
         },
         'search': {
-            'radius_km': _get_float('ALONGGPX_RADIUS_KM', 5.0),
-            'step_km': _get_float('ALONGGPX_STEP_KM'),  # None = auto-calculate
-            'presets': _parse_semicolon_list(os.getenv('ALONGGPX_PRESETS')),
-            'include': _parse_semicolon_list(os.getenv('ALONGGPX_SEARCH_INCLUDE')),
-            'exclude': _parse_semicolon_list(os.getenv('ALONGGPX_SEARCH_EXCLUDE')),
+            'radius_km': _get_float('WA_RADIUS_KM', 5.0),
+            'step_km': _get_float('WA_STEP_KM'),  # None = auto-calculate
+            'presets': _parse_semicolon_list(os.getenv('WA_PRESETS')),
+            'include': _parse_semicolon_list(os.getenv('WA_SEARCH_INCLUDE')),
+            'exclude': _parse_semicolon_list(os.getenv('WA_SEARCH_EXCLUDE')),
         },
         'overpass': {
-            'retries': _get_int('ALONGGPX_OVERPASS_RETRIES', 5),
-            'batch_km': _get_float('ALONGGPX_BATCH_KM', 50.0),
+            'retries': _get_int('WA_OVERPASS_RETRIES', 5),
+            'batch_km': _get_float('WA_BATCH_KM', 50.0),
             'servers': _parse_semicolon_list(
-                os.getenv('ALONGGPX_OVERPASS_SERVERS'),
+                os.getenv('WA_OVERPASS_SERVERS'),
                 default=[
                     'https://overpass.private.coffee/api/interpreter',
                     'https://overpass-api.de/api/interpreter',
@@ -133,20 +133,20 @@ def load_config_from_env() -> dict:
             ),
         },
         'map': {
-            'track_color': os.getenv('ALONGGPX_TRACK_COLOR', 'blue'),
-            'default_marker_color': os.getenv('ALONGGPX_DEFAULT_MARKER_COLOR', 'gray'),
+            'track_color': os.getenv('WA_TRACK_COLOR', 'blue'),
+            'default_marker_color': os.getenv('WA_DEFAULT_MARKER_COLOR', 'gray'),
             'marker_color_palette': _parse_semicolon_list(
-                os.getenv('ALONGGPX_MARKER_COLOR_PALETTE'),
+                os.getenv('WA_MARKER_COLOR_PALETTE'),
                 default=['orange', 'purple', 'green', 'blue', 'darkred', 'darkblue', 'darkgreen', 'cadetblue', 'pink']
             ),
         },
         'cleanup': {
-            'interval_seconds': _get_int('ALONGGPX_CLEANUP_INTERVAL_SECONDS', 600),
-            'job_ttl_seconds': _get_int('ALONGGPX_JOB_TTL_SECONDS', 21600),
-            'temp_file_max_age_seconds': _get_int('ALONGGPX_TEMP_FILE_MAX_AGE_SECONDS', 3600),
-            'output_retention_days': _get_int('ALONGGPX_OUTPUT_RETENTION_DAYS', 10),
+            'interval_seconds': _get_int('WA_CLEANUP_INTERVAL_SECONDS', 600),
+            'job_ttl_seconds': _get_int('WA_JOB_TTL_SECONDS', 21600),
+            'temp_file_max_age_seconds': _get_int('WA_TEMP_FILE_MAX_AGE_SECONDS', 3600),
+            'output_retention_days': _get_int('WA_OUTPUT_RETENTION_DAYS', 10),
         },
-        'presets_file': os.getenv('ALONGGPX_PRESETS_FILE', 'data/presets.yaml'),
+        'presets_file': os.getenv('WA_PRESETS_FILE', 'data/presets.yaml'),
     }
     
     # Auto-calculate step_km if not set
@@ -414,7 +414,7 @@ def build_geojson(track_points, df):
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    return jsonify({'status': 'healthy', 'service': 'AlongGPX'}), 200
+    return jsonify({'status': 'healthy', 'service': 'WhatsAround'}), 200
 
 
 @app.route('/api/config', methods=['GET'])

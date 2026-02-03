@@ -1,6 +1,6 @@
-# Web Frontend for AlongGPX
+# Web Frontend for WhatsAround
 
-This is the web frontend for the AlongGPX application built with React and Vite.
+This is the web frontend for the WhatsAround application built with React and Vite.
 
 ## Development
 

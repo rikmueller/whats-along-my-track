@@ -62,25 +62,25 @@ def load_cli_config(args) -> dict:
     # Build config from environment variables
     config = {
         'project': {
-            'name': os.getenv('ALONGGPX_PROJECT_NAME', 'AlongGPX'),
-            'output_path': os.getenv('ALONGGPX_OUTPUT_PATH', '../data/output'),
-            'timezone': os.getenv('ALONGGPX_TIMEZONE', 'UTC'),
+            'name': os.getenv('WA_PROJECT_NAME', 'MyProject'),
+            'output_path': os.getenv('WA_OUTPUT_PATH', '../data/output'),
+            'timezone': os.getenv('WA_TIMEZONE', 'UTC'),
         },
         'input': {
-            'gpx_file': os.getenv('ALONGGPX_GPX_FILE', '../data/input/example.gpx'),
+            'gpx_file': os.getenv('WA_GPX_FILE', '../data/input/example.gpx'),
         },
         'search': {
-            'radius_km': get_float('ALONGGPX_RADIUS_KM', 5.0),
-            'step_km': get_float('ALONGGPX_STEP_KM'),  # None = auto-calculate
-            'presets': parse_semicolon_list(os.getenv('ALONGGPX_PRESETS')),
-            'include': parse_semicolon_list(os.getenv('ALONGGPX_SEARCH_INCLUDE')),
-            'exclude': parse_semicolon_list(os.getenv('ALONGGPX_SEARCH_EXCLUDE')),
+            'radius_km': get_float('WA_RADIUS_KM', 5.0),
+            'step_km': get_float('WA_STEP_KM'),  # None = auto-calculate
+            'presets': parse_semicolon_list(os.getenv('WA_PRESETS')),
+            'include': parse_semicolon_list(os.getenv('WA_SEARCH_INCLUDE')),
+            'exclude': parse_semicolon_list(os.getenv('WA_SEARCH_EXCLUDE')),
         },
         'overpass': {
-            'retries': get_int('ALONGGPX_OVERPASS_RETRIES', 5),
-            'batch_km': get_float('ALONGGPX_BATCH_KM', 50.0),
+            'retries': get_int('WA_OVERPASS_RETRIES', 5),
+            'batch_km': get_float('WA_BATCH_KM', 50.0),
             'servers': parse_semicolon_list(
-                os.getenv('ALONGGPX_OVERPASS_SERVERS')
+                os.getenv('WA_OVERPASS_SERVERS')
             ) or [
                 'https://overpass.private.coffee/api/interpreter',
                 'https://overpass-api.de/api/interpreter',
@@ -88,13 +88,13 @@ def load_cli_config(args) -> dict:
             ],
         },
         'map': {
-            'track_color': os.getenv('ALONGGPX_TRACK_COLOR', 'blue'),
-            'default_marker_color': os.getenv('ALONGGPX_DEFAULT_MARKER_COLOR', 'gray'),
+            'track_color': os.getenv('WA_TRACK_COLOR', 'blue'),
+            'default_marker_color': os.getenv('WA_DEFAULT_MARKER_COLOR', 'gray'),
             'marker_color_palette': parse_semicolon_list(
-                os.getenv('ALONGGPX_MARKER_COLOR_PALETTE')
+                os.getenv('WA_MARKER_COLOR_PALETTE')
             ) or ['orange', 'purple', 'green', 'blue', 'darkred', 'darkblue', 'darkgreen', 'cadetblue', 'pink'],
         },
-        'presets_file': os.getenv('ALONGGPX_PRESETS_FILE', 'data/presets.yaml'),
+        'presets_file': os.getenv('WA_PRESETS_FILE', 'data/presets.yaml'),
     }
     
     # Apply CLI argument overrides (highest precedence)

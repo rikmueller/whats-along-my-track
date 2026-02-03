@@ -1,8 +1,8 @@
-# AlongGPX
+# WhatsAround
 
 **Find OpenStreetMap POIs along your GPX tracks. Plan smarter: campsites, water sources, shelters, restaurants—everything you need along your route.**
 
-**🌐 Try it online: [along-gpx.de](https://along-gpx.de)**
+**🌐 Try it online: [getwhatsaround.app](https://getwhatsaround.app)**
 
 ---
 
@@ -47,7 +47,7 @@ Build your own using OpenStreetMap tags (e.g., `amenity=restaurant`, `shop=bicyc
 ### 2.1 Project Structure 🏗️ 
 
 ```
-AlongGPX/
+WhatsAround/
 ├── backend/              # Python backend
 │   ├── api/             # Flask REST API
 │   └── core/            # Processing pipeline (GPX, Overpass, filtering)
@@ -105,7 +105,7 @@ see **[FRONTEND.md](FRONTEND.md)**
 
 ### 2.5 Configuration ⚙️
 
-AlongGPX is configured via environment variables. See respective configuration directories for available options.
+WhatsAround is configured via environment variables. See respective configuration directories for available options.
 
 **Filter presets** are defined in [data/presets.yaml](data/presets.yaml). Add your own!
 
@@ -113,12 +113,12 @@ AlongGPX is configured via environment variables. See respective configuration d
 
 ## 3.  Getting Started on your machine 🚀
 
-You don't want to use along-gpx.de, but rather your own setup?
-AlongGPX offers **four ways to run** the application on your machine, depending on your needs.
+You don't want to use getwhatsaround.app, but rather your own setup?
+WhatsAround offers **four ways to run** the application on your machine, depending on your needs.
 
 To start, clone the repository:
 ```bash
-git clone https://github.com/rikmueller/along-gpx.git
+git clone https://github.com/rikmueller/whatsaround.git
 ```
 And decide on a flavor:
 

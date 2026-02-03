@@ -1,4 +1,4 @@
-# AlongGPX Docker Production Configuration
+# WhatsAround Docker Production Configuration
 
 This directory contains configuration for **Docker production deployment** with pre-built images and Nginx reverse proxy.
 
@@ -35,14 +35,14 @@ This directory contains configuration for **Docker production deployment** with 
 
 1. **Create SSL directory and place your files:**
    ```bash
-   sudo mkdir -p /etc/ssl/along-gpx
-   sudo cp your-cert.cer /etc/ssl/along-gpx/
-   sudo cp your-key.key /etc/ssl/along-gpx/
-   sudo chmod 644 /etc/ssl/along-gpx/*
+   sudo mkdir -p /etc/ssl/whatsaround
+   sudo cp your-cert.cer /etc/ssl/whatsaround/
+   sudo cp your-key.key /etc/ssl/whatsaround/
+   sudo chmod 644 /etc/ssl/whatsaround/*
    ```
 
 2. **Update `deployment/nginx.conf`:**
-   - Change `server_name localhost;` to your domain (e.g., `server_name along-gpx.de www.along-gpx.de;`)
+   - Change `server_name localhost;` to your domain (e.g., `server_name getwhatsaround.app www.getwhatsaround.app;`)
    - Update `ssl_certificate` and `ssl_certificate_key` paths to match your filenames
 
    Example configuration:
@@ -62,8 +62,8 @@ This directory contains configuration for **Docker production deployment** with 
        listen 443 ssl;
        server_name your-domain.example www.your-domain.example;
 
-       ssl_certificate     /etc/ssl/along-gpx/your_ssl_certificate.cer;
-       ssl_certificate_key /etc/ssl/along-gpx/your_private_key.key;
+       ssl_certificate     /etc/ssl/whatsaround/your_ssl_certificate.cer;
+       ssl_certificate_key /etc/ssl/whatsaround/your_private_key.key;
 
        location / {
            root /usr/share/nginx/html;
@@ -111,7 +111,7 @@ This directory contains configuration for **Docker production deployment** with 
 HTTP traffic (port 80) automatically redirects to HTTPS.
 
 **Notes:**
-- Volume mount `/etc/ssl/along-gpx` must be on the `nginx` service
+- Volume mount `/etc/ssl/whatsaround` must be on the `nginx` service
 - Certificate and key must be readable (mode 644)
 - Port 443 must be open on your host firewall
 - For Let's Encrypt, mount `/etc/letsencrypt` instead
@@ -145,7 +145,7 @@ Data is persisted in these host directories:
 - `../../data/input` → `/app/data/input` (read-only)
 - `../../data/output` → `/app/data/output` (read-write)
 - `../../data/presets.yaml` → `/app/data/presets.yaml` (read-only)
-- `/etc/ssl/along-gpx` → `/etc/ssl/along-gpx` (SSL certificates, read-only, optional)
+- `/etc/ssl/whatsaround` → `/etc/ssl/whatsaround` (SSL certificates, read-only, optional)
 
 ## Configuration
 
@@ -186,7 +186,7 @@ docker compose up -d --build
 ## Data Management
 
 ### Cleanup Old Outputs
-Results accumulate in `data/output/`. The backend automatically deletes files older than 10 days (configurable via `ALONGGPX_OUTPUT_RETENTION_DAYS` in docker-compose.yml).
+Results accumulate in `data/output/`. The backend automatically deletes files older than 10 days (configurable via `WA_OUTPUT_RETENTION_DAYS` in docker-compose.yml).
 
 Manual cleanup:
 ```bash
@@ -219,8 +219,8 @@ sudo chown -R 1000:1000 ../../data
 ### SSL certificate not found
 Ensure the volume mount is on the `nginx` service (not `backend`) and files exist:
 ```bash
-ls -la /etc/ssl/along-gpx/
-docker exec alonggpx-nginx ls -la /etc/ssl/along-gpx/
+ls -la /etc/ssl/whatsaround/
+docker exec whatsaround-nginx ls -la /etc/ssl/whatsaround/
 ```
 
 ## See Also

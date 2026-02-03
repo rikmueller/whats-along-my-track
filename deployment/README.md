@@ -10,13 +10,13 @@ If you need to build containers manually:
 
 ```bash
 # Backend
-docker build -f deployment/Dockerfile.backend -t alonggpx-backend .
+docker build -f deployment/Dockerfile.backend -t whatsaround-backend .
 
 # Frontend (production)
-docker build -f deployment/Dockerfile.frontend-prod -t alonggpx-frontend .
+docker build -f deployment/Dockerfile.frontend-prod -t whatsaround-frontend .
 
 # Frontend (development)
-docker build -f deployment/Dockerfile.frontend-dev -t alonggpx-frontend-dev .
+docker build -f deployment/Dockerfile.frontend-dev -t whatsaround-frontend-dev .
 ```
 
 ## 📚 See Also
