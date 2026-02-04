@@ -5,12 +5,11 @@ import {
   GeoJsonResponse,
   JobStatus,
 } from './api'
-import BrandingHeader from './components/BrandingHeader'
+import Header from './components/Header'
 import InteractiveMap, { MapPoi, TileSource } from './components/InteractiveMap'
 import SettingsSheet from './components/SettingsSheet'
 import PresetSelectionModal from './components/PresetSelectionModal'
 import FilterSelectionModal from './components/FilterSelectionModal'
-import Modal from './components/Modal'
 import SeoMeta from './components/SeoMeta'
 import { useWebSocket } from './hooks/useWebSocket'
 import './DevApp.css'
@@ -493,11 +492,7 @@ function DevApp() {
         description="Run POI searches with custom filters, view results on a live map, and export Excel or HTML maps."
         url="https://getwhatsaround.app/map"
       />
-      <BrandingHeader
-        title="WhatsAround"
-        subtitle="Plan smarter nearby"
-        showMenu={true}
-      />
+      <Header logoHref="/map" />
       {notification && (
         <div style={{
           position: 'fixed',

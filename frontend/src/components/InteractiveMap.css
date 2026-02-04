@@ -1,17 +1,15 @@
 .map-wrapper {
-  position: fixed;
-  inset: 0;
+  flex: 1;
+  position: relative;
   z-index: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .map {
   width: 100%;
-  /* Size to the fixed wrapper to avoid mobile 100vh quirks (controls can end up off-screen) */
   height: 100%;
-  /* Fallbacks for browsers that treat % heights oddly */
-  min-height: 100vh;
-  min-height: 100svh;
-  min-height: 100dvh;
 }
 
 /* Move attribution to bottom left */
