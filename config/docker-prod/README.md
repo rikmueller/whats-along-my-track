@@ -223,6 +223,29 @@ ls -la /etc/ssl/whatsaround/
 docker exec whatsaround-nginx ls -la /etc/ssl/whatsaround/
 ```
 
+## Housekeeping
+
+WhatsAround includes automatic cleanup to prevent disk space issues:
+
+| Setting | Value | Purpose |
+|---------|-------|---------|
+| `WA_CLEANUP_INTERVAL_SECONDS` | 600 | Background cleanup runs every 10 minutes |
+| `WA_JOB_TTL_SECONDS` | 21600 | Keep job records in memory for 6 hours |
+| `WA_TEMP_FILE_MAX_AGE_SECONDS` | 3600 | Delete temp GPX uploads after 1 hour |
+| `WA_OUTPUT_RETENTION_DAYS` | 10 | Delete Excel/HTML results after 10 days |
+
+**What gets cleaned up:**
+
+- **Temporary GPX files**: Uploaded files in `/tmp` are auto-deleted after 1 hour
+- **Job records**: Completed/failed jobs removed from memory after 6 hours (results remain if within retention window)
+- **Output files**: Generated Excel and HTML maps auto-deleted after 10 days
+
+**When to adjust** (edit `docker-compose.yml`):
+
+- Increase `WA_TEMP_FILE_MAX_AGE_SECONDS` if downloads take longer than 1 hour
+- Increase `WA_OUTPUT_RETENTION_DAYS` for longer-term result storage
+- Decrease `WA_CLEANUP_INTERVAL_SECONDS` if disk space is limited
+
 ## See Also
 
 - [Main README](../../README.md) - Project overview
