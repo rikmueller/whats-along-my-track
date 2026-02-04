@@ -29,8 +29,8 @@
   top: 92px; /* safely below the stacked zoom buttons */
   left: 10px;
   z-index: 420;
-  background: #fff;
-  border: 1px solid #c7cdd3;
+  background: var(--wa-panel-bg);
+  border: 1px solid var(--wa-border);
   width: 32px;
   height: 32px;
   display: inline-flex;
@@ -38,22 +38,22 @@
   justify-content: center;
   border-radius: 4px;
   cursor: pointer;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--wa-card-shadow);
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .locate-control:not(:disabled):hover,
 .recenter-control:not(:disabled):hover {
-  background: #f5f6f7;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  background: var(--wa-card-bg);
+  box-shadow: var(--wa-glass-shadow);
 }
 
 .locate-control:disabled,
 .recenter-control:disabled {
   opacity: 0.6;
   cursor: not-allowed;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
-  background: #f9fafb;
+  box-shadow: var(--color-shadow);
+  background: var(--wa-step-bg);
 }
 
 .locate-control.locating {
@@ -79,7 +79,7 @@
 
 .locate-control svg,
 .recenter-control svg {
-  stroke: #2c3e50;
+  stroke: var(--wa-text);
   width: 18px;
   height: 18px;
 }
@@ -98,34 +98,34 @@
 .tile-control {
   width: 32px;
   height: 32px;
-  background: #fff;
-  border: 1px solid #c7cdd3;
+  background: var(--wa-panel-bg);
+  border: 1px solid var(--wa-border);
   border-radius: 4px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--wa-card-shadow);
   cursor: pointer;
   transition: background 0.15s ease, box-shadow 0.15s ease;
 }
 
 .tile-control:hover {
-  background: #f5f6f7;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  background: var(--wa-card-bg);
+  box-shadow: var(--wa-glass-shadow);
 }
 
 .tile-control svg {
-  stroke: #2c3e50;
+  stroke: var(--wa-text);
   width: 18px;
   height: 18px;
 }
 
 .tile-popover {
   margin-top: 6px;
-  background: #fff;
-  border: 1px solid #c7cdd3;
+  background: var(--wa-panel-bg);
+  border: 1px solid var(--wa-border);
   border-radius: 6px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  box-shadow: var(--wa-glass-shadow);
   padding: 6px 0;
   min-width: 160px;
 }
@@ -138,16 +138,16 @@
   border: none;
   cursor: pointer;
   font-size: 13px;
-  color: #1f2937;
+  color: var(--wa-text);
 }
 
 .tile-option:hover {
-  background: #f3f4f6;
+  background: var(--wa-step-bg);
 }
 
 .tile-option.active {
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--wa-card-bg);
+  color: var(--color-primary);
   font-weight: 600;
 }
 
@@ -158,8 +158,8 @@
 }
 
 .tooltip-content .chip {
-  background: #eef2ff;
-  color: #3730a3;
+  background: var(--wa-step-bg);
+  color: var(--color-primary);
   padding: 4px 8px;
   border-radius: 999px;
   font-weight: 600;

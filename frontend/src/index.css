@@ -122,3 +122,25 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-secondary);
 }
+
+/* Leaflet default controls dark mode support */
+.leaflet-control-zoom a,
+.leaflet-bar a {
+  background-color: var(--wa-panel-bg) !important;
+  border-color: var(--wa-border) !important;
+  color: var(--wa-text) !important;
+}
+
+.leaflet-control-zoom a:hover,
+.leaflet-bar a:hover {
+  background-color: var(--wa-card-bg) !important;
+}
+
+.leaflet-control-attribution {
+  background: var(--wa-panel-bg) !important;
+  color: var(--wa-text-muted) !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--color-primary) !important;
+}

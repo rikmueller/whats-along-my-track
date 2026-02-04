@@ -53,13 +53,11 @@
 
 .wa-nav-link:hover {
   color: var(--wa-text);
-  background: rgba(148, 163, 184, 0.2);
 }
 
 .wa-nav-link.active {
-  color: var(--wa-text);
-  background: rgba(37, 99, 235, 0.2);
-  border: 1px solid rgba(37, 99, 235, 0.45);
+  color: var(--wa-accent);
+  font-weight: 600;
 }
 
 .wa-header-actions {
@@ -140,8 +138,8 @@
 }
 
 .wa-menu-item.active {
-  background: rgba(37, 99, 235, 0.2);
-  border: 1px solid rgba(37, 99, 235, 0.45);
+  color: var(--wa-accent);
+  font-weight: 600;
 }
 
 @media (max-width: 900px) {
@@ -150,11 +148,12 @@
   }
 
   .wa-nav {
-    display: none;
+    gap: 6px;
   }
 
-  .wa-menu-toggle {
-    display: inline-flex;
+  .wa-nav-link {
+    padding: 6px 10px;
+    font-size: 0.9rem;
   }
 }
 
@@ -162,14 +161,20 @@
   .wa-header-inner {
     height: var(--wa-header-height-xs);
     padding: 0 14px;
-  }
-
-  .wa-logo-text {
-    display: none;
+    gap: 12px;
   }
 
   .wa-logo-icon {
     width: 28px;
     height: 28px;
+  }
+
+  .wa-nav {
+    gap: 4px;
+  }
+
+  .wa-nav-link {
+    padding: 4px 8px;
+    font-size: 0.85rem;
   }
 }
