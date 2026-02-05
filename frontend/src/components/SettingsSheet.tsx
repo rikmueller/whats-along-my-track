@@ -339,7 +339,9 @@ export default function SettingsSheet({
           <div className="instruction-tile">
             <p>
               {markerPosition 
-                ? 'Marker is set on map, change position by dragging.'
+                ? status 
+                  ? 'Marking is locked, clear coordinates to reset.'
+                  : 'Marker is set on map, change position by dragging.'
                 : 'Click the map to place a marker at the desired position.'}
             </p>
           </div>

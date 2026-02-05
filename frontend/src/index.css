@@ -83,6 +83,8 @@
   /* Dark mode color adjustments for better contrast */
   --color-warning: #fbbf24;
   --color-error: #f87171;
+  --color-bg-secondary: #1e293b;
+  --color-text-secondary: rgba(226, 232, 240, 0.72);
 }
 
 * {

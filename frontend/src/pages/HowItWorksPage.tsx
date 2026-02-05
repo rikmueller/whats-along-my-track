@@ -168,6 +168,8 @@ export default function HowItWorksPage() {
                   <li><strong>Excel (.xlsx):</strong> Structured data table with all POI details, sortable and filterable</li>
                   <li><strong>Interactive Map (.html):</strong> Standalone Folium map</li>
                 </ul>
+                <p/>
+                <p>💡 You may need to scroll down in the settings to see the download area.</p>
               </div>
             )}
           </div>
