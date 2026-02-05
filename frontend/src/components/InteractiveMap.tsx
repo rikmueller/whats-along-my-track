@@ -39,6 +39,11 @@ type Props = {
   jobStatus: JobStatus | null
 }
 
+type MapViewState = {
+  center: [number, number]
+  zoom: number
+}
+
 // Default palette (will be overridden by config.yaml values)
 const DEFAULT_COLOR_PALETTE = ['orange', 'purple', 'green', 'blue', 'darkred', 'darkblue', 'darkgreen', 'cadetblue', 'pink']
 const DEFAULT_COLOR = 'gray'
@@ -69,6 +74,46 @@ const SUPPORTED_MARKER_COLORS = new Set([
   'grey',
   'black',
 ])
+
+const LOCAL_STORAGE_MAP_VIEW_KEY = 'whatsaround.mapView'
+const LOCAL_STORAGE_MAP_SIG_KEY = 'whatsaround.mapSignature'
+
+function loadMapView(): MapViewState | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_MAP_VIEW_KEY)
+    return saved ? JSON.parse(saved) : null
+  } catch (err) {
+    console.warn('Could not load map view from localStorage', err)
+    return null
+  }
+}
+
+function saveMapView(view: MapViewState) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_MAP_VIEW_KEY, JSON.stringify(view))
+  } catch (err) {
+    console.warn('Could not persist map view', err)
+  }
+}
+
+function loadMapSignature(): string | null {
+  if (typeof window === 'undefined') return null
+  try {
+    return localStorage.getItem(LOCAL_STORAGE_MAP_SIG_KEY)
+  } catch (err) {
+    console.warn('Could not load map signature from localStorage', err)
+    return null
+  }
+}
+
+function saveMapSignature(signature: string) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_MAP_SIG_KEY, signature)
+  } catch (err) {
+    console.warn('Could not persist map signature', err)
+  }
+}
 
 function normalizeMarkerColor(color: string, fallback: string) {
   const mapped = MARKER_COLOR_MAP[color] || color
@@ -224,7 +269,7 @@ function computePadding() {
   return { padTop, padLeft, padRight, padBottom, occLeft, occRight }
 }
 
-function FitBounds({ track, pois }: { track: [number, number][]; pois: MapPoi[] }) {
+function FitBounds({ track, pois, skipAutoFit }: { track: [number, number][]; pois: MapPoi[]; skipAutoFit: boolean }) {
   const map = useMap()
 
   const userMovedRef = useRef(false)
@@ -272,6 +317,10 @@ function FitBounds({ track, pois }: { track: [number, number][]; pois: MapPoi[] 
   }
 
   useEffect(() => {
+    if (skipAutoFit && signature && !lastSigRef.current) {
+      userMovedRef.current = true
+      lastSigRef.current = signature
+    }
     // Reset user interaction flag when data is cleared (reset case)
     if (!signature && lastSigRef.current) {
       userMovedRef.current = false
@@ -294,7 +343,7 @@ function FitBounds({ track, pois }: { track: [number, number][]; pois: MapPoi[] 
       map.off('zoomstart', onZoomStart)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signature, map])
+  }, [signature, map, skipAutoFit])
   return null
 }
 
@@ -447,6 +496,42 @@ function TileSelector({ tileOptions, value, onChange }: { tileOptions: TileSourc
   )
 }
 
+function MapViewPersistence({ signature, onRestored }: { signature: string; onRestored: (sig: string | null) => void }) {
+  const map = useMap()
+  const restoredRef = useRef(false)
+
+  useEffect(() => {
+    if (restoredRef.current) return
+    const savedView = loadMapView()
+    if (!savedView) return
+    const savedSig = loadMapSignature()
+    if (savedSig && signature && savedSig !== signature) return
+    map.setView(savedView.center, savedView.zoom, { animate: false })
+    restoredRef.current = true
+    onRestored(savedSig || null)
+  }, [map, signature, onRestored])
+
+  useEffect(() => {
+    const persist = () => {
+      const center = map.getCenter()
+      saveMapView({ center: [center.lat, center.lng], zoom: map.getZoom() })
+      if (signature) {
+        saveMapSignature(signature)
+      }
+    }
+
+    map.on('moveend', persist)
+    map.on('zoomend', persist)
+
+    return () => {
+      map.off('moveend', persist)
+      map.off('zoomend', persist)
+    }
+  }, [map, signature])
+
+  return null
+}
+
 function MapClickHandler({ onMapClick }: { onMapClick: (lat: number, lon: number) => void }) {
   const map = useMap()
 
@@ -475,6 +560,7 @@ export default function InteractiveMap({ track, pois, markerPosition, onMarkerCh
   const [colorPalette, setColorPalette] = useState<string[]>(DEFAULT_COLOR_PALETTE)
   const [trackColor, setTrackColor] = useState<string>('#2563eb')
   const markerRef = useRef<L.Marker>(null)
+  const [restoredSignature, setRestoredSignature] = useState<string | null>(null)
 
   // Determine if marker should be locked (during processing or after completion, but not on failure)
   const isMarkerLocked = jobStatus && (
@@ -570,6 +656,20 @@ export default function InteractiveMap({ track, pois, markerPosition, onMarkerCh
 
   const polylineCoords = useMemo(() => track.map(([lon, lat]) => [lat, lon]), [track])
 
+  const mapSignature = useMemo(() => {
+    const tLen = track.length
+    const pLen = pois.length
+    const markerSig = markerPosition ? markerPosition.join(',') : ''
+    if (!tLen && !pLen && !markerSig) return ''
+    const tFirst = tLen ? track[0] : []
+    const tLast = tLen ? track[tLen - 1] : []
+    const pFirst = pLen ? pois[0].coords : []
+    const pLast = pLen ? pois[pLen - 1].coords : []
+    return `${tLen}:${tFirst?.join(',')}:${tLast?.join(',')}:${pLen}:${pFirst?.join(',')}:${pLast?.join(',')}:${markerSig}`
+  }, [track, pois, markerPosition])
+
+  const skipAutoFit = Boolean(restoredSignature && restoredSignature === mapSignature)
+
   // Build filter-to-color mapping based on unique filters in order of appearance
   const filterColorMap = useMemo(() => {
     const uniqueFilters = Array.from(new Set(pois.map((p) => p.matchingFilter).filter(Boolean)))
@@ -605,6 +705,7 @@ export default function InteractiveMap({ track, pois, markerPosition, onMarkerCh
       >
         <TileLayer url={tileSource.url} attribution={tileSource.attribution} />
         <MapClickHandler onMapClick={handleMapClick} />
+        <MapViewPersistence signature={mapSignature} onRestored={setRestoredSignature} />
         <MarkerModeSwitchHandler onMarkerChange={onMarkerChange} inputMode={inputMode} markerPosition={markerPosition} />
         
         {/* User-placed marker (draggable) - only visible in marker mode */}
@@ -722,7 +823,7 @@ export default function InteractiveMap({ track, pois, markerPosition, onMarkerCh
             </Marker>
           )
         })}
-        <FitBounds track={track} pois={pois} />
+        <FitBounds track={track} pois={pois} skipAutoFit={skipAutoFit} />
         <ScaleControl />
         <LocateButton />
         <RecenterButton track={track} pois={pois} markerPosition={markerPosition} />
