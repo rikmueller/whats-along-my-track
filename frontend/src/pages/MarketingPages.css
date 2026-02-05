@@ -1,0 +1,329 @@
+.marketing-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 24px 20px 64px;
+}
+
+.marketing-hero {
+  display: block;
+  width: 100%;
+  text-align: left;
+}
+
+.marketing-container.marketing-hero {
+  padding-top: 24px;
+  padding-bottom: 24px;
+}
+
+.marketing-hero h1 {
+  font-size: clamp(2.2rem, 4vw, 3.6rem);
+  line-height: 1.1;
+  color: var(--wa-hero-title);
+  margin: 0 0 24px 0;
+  width: 100%;
+  display: block;
+}
+
+.marketing-hero p {
+  font-size: 1.1rem;
+  color: var(--wa-hero-text);
+  margin: 0 0 24px 0;
+  width: 100%;
+  display: block;
+}
+
+.marketing-hero-actions {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.marketing-hero-narrow h1,
+.marketing-hero-narrow p,
+.marketing-hero-narrow .marketing-hero-actions {
+  padding: 0 18px;
+}
+
+.marketing-section-title {
+  font-size: 1.6rem;
+  color: var(--wa-hero-title);
+  margin-bottom: 18px;
+}
+
+.marketing-section-subtitle {
+  color: var(--wa-hero-text);
+  margin-bottom: 32px;
+}
+
+.marketing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .marketing-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.marketing-card {
+  background: var(--wa-card-bg);
+  border: 1px solid var(--wa-card-border);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: var(--wa-card-shadow);
+}
+
+.marketing-card h3 {
+  margin-bottom: 8px;
+  color: var(--wa-hero-title);
+  font-size: 1.05rem;
+}
+
+.marketing-card p {
+  color: var(--wa-card-text);
+  line-height: 1.6;
+}
+
+.marketing-panel {
+  background: var(--wa-panel-bg);
+  border: 1px solid var(--wa-card-border);
+  border-radius: 24px;
+  padding: 28px;
+  display: grid;
+  gap: 20px;
+}
+
+.marketing-steps {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.marketing-steps-full {
+  grid-template-columns: 1fr;
+}
+
+@media (max-width: 768px) {
+  .marketing-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .marketing-steps-full {
+    margin: 0 0 32px 0;
+  }
+}
+
+.marketing-step {
+  display: grid;
+  gap: 6px;
+  padding: 16px 18px;
+  border-radius: 16px;
+  background: var(--wa-step-bg);
+  border: 1px solid var(--wa-step-border);
+}
+
+.marketing-step span {
+  color: var(--wa-step-label);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.marketing-step h4 {
+  color: var(--wa-hero-title);
+  margin: 0;
+}
+
+.marketing-step p {
+  color: var(--wa-card-text);
+  margin: 0;
+}
+
+.marketing-cta-panel {
+  margin-top: 32px;
+  padding: 28px;
+  border-radius: 22px;
+  background: var(--wa-cta-bg);
+  border: 1px solid var(--wa-cta-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+
+.marketing-cta-panel h3 {
+  color: var(--wa-hero-title);
+  margin: 0;
+}
+
+.marketing-cta-panel p {
+  color: var(--wa-hero-text);
+  margin: 6px 0 0;
+}
+
+.marketing-cta-panel .marketing-button.primary {
+  box-shadow: 0 16px 36px rgba(37, 99, 235, 0.45);
+}
+
+.marketing-guide-content {
+  line-height: 1.7;
+}
+
+.marketing-guide-content h3 {
+  color: var(--wa-hero-title);
+  font-size: 1.3rem;
+  margin: 2.5rem 0 1rem 0;
+}
+
+.marketing-guide-content h3:first-child {
+  margin-top: 0;
+}
+
+.marketing-guide-content p {
+  color: var(--wa-card-text);
+  margin: 0.75rem 0;
+}
+
+.marketing-guide-content ul {
+  color: var(--wa-card-text);
+  margin: 0.75rem 0;
+  padding-left: 1.5rem;
+}
+
+.marketing-guide-content li {
+  margin: 0.5rem 0;
+}
+
+.marketing-guide-content code {
+  background: var(--wa-step-bg);
+  border: 1px solid var(--wa-step-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.9em;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.marketing-guide-content a {
+  color: #3b82f6;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.marketing-guide-content a:hover {
+  border-bottom-color: #3b82f6;
+}
+
+/* Expandable steps */
+.marketing-step.expandable {
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.marketing-step.expandable:hover {
+  border-color: var(--wa-accent);
+  transform: translateY(-2px);
+}
+
+.marketing-step-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.marketing-step-header > div {
+  flex: 1;
+}
+
+.expand-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: var(--wa-hero-title);
+  transition: transform 0.3s ease;
+  margin-top: 4px;
+}
+
+.marketing-step.expanded .expand-icon {
+  transform: rotate(180deg);
+}
+
+.marketing-step-details {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--wa-step-border);
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.marketing-step-details h5 {
+  color: var(--wa-hero-title);
+  font-size: 1rem;
+  margin: 1rem 0 0.5rem 0;
+}
+
+.marketing-step-details h5:first-child {
+  margin-top: 0;
+}
+
+.marketing-step-details p {
+  color: var(--wa-card-text);
+  margin: 0.5rem 0;
+}
+
+.marketing-step-details ul {
+  margin: 0.5rem 0;
+  padding-left: 1.5rem;
+  color: var(--wa-card-text);
+}
+
+.marketing-step-details li {
+  margin: 0.35rem 0;
+}
+
+.marketing-step-details code {
+  background: var(--wa-step-bg);
+  border: 1px solid var(--wa-step-border);
+  border-radius: 4px;
+  padding: 2px 6px;
+  font-size: 0.9em;
+  font-family: 'Monaco', 'Menlo', monospace;
+}
+
+.marketing-step-details a {
+  color: #3b82f6;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.marketing-step-details a:hover {
+  border-bottom-color: #3b82f6;
+}
+
+@media (max-width: 700px) {
+  .marketing-hero {
+    padding-top: 56px;
+  }
+
+  .marketing-cta-panel {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

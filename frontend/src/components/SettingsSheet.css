@@ -48,7 +48,7 @@
     bottom: 0;
     background: rgba(0, 0, 0, 0.5);
     backdrop-filter: blur(4px);
-    z-index: 175;
+    z-index: 240;
     animation: fadeIn 0.2s ease-out;
   }
 
@@ -57,7 +57,7 @@
     to { opacity: 1; }
   }
 
-  /* Sheet becomes fullscreen overlay */
+  /* Sheet becomes fullscreen overlay - covers entire screen including header */
   .sheet {
     position: fixed;
     top: 0;
@@ -65,21 +65,20 @@
     right: 0;
     bottom: 0;
     width: 100%;
-    height: 100%;
-    max-height: 100vh;
-    background: white;
+    height: 100vh;
+    background: var(--wa-bg);
     backdrop-filter: none;
     box-shadow: none;
     border-radius: 0;
-    /* Use element-relative translation so it fully leaves the viewport on mobile (avoids 100vh quirks) */
+    /* Slide up from bottom */
     transform: translateY(100%);
     transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), visibility 0s 0.3s;
-    z-index: 190;
+    z-index: 250;
     visibility: hidden;
     display: flex;
     flex-direction: column;
     overflow: hidden;
-    touch-action: none; /* Prevent any touch gestures on the sheet itself */
+    touch-action: none;
   }
 
   .sheet.open {
@@ -114,9 +113,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 16px;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--wa-border);
     flex-shrink: 0;
-    background: white;
+    background: var(--wa-bg);
     gap: 12px;
   }
 
@@ -125,6 +124,7 @@
     font-size: 20px;
     font-weight: 700;
     flex-shrink: 0;
+    color: var(--wa-text);
   }
 
   .sheet-mobile-close {
@@ -135,7 +135,7 @@
     align-items: center;
     justify-content: center;
     padding: 8px;
-    color: var(--color-text);
+    color: var(--wa-text);
     flex-shrink: 0;
   }
 
@@ -196,7 +196,7 @@
 }
 
 .muted {
-  color: var(--color-text-secondary);
+  color: var(--wa-text-muted);
   font-size: 14px;
 }
 
@@ -219,31 +219,31 @@
 }
 
 .alert-warning {
-  background: #fffbeb;
-  color: #92400e;
-  border: 1px solid #fde68a;
+  background: var(--wa-panel-bg);
+  color: var(--color-warning);
+  border: 1px solid var(--wa-border);
   font-size: clamp(11px, 2.5vw, 14px);
 }
 
 .alert-error {
-  background: #fef2f2;
+  background: var(--wa-panel-bg);
   color: var(--color-error);
-  border: 1px solid #fecdd3;
+  border: 1px solid var(--wa-border);
   font-size: clamp(11px, 2.5vw, 14px);
 }
 
 .sheet-section {
-  background: white;
-  border: 1px solid var(--color-border);
+  background: var(--wa-card-bg);
+  border: 1px solid var(--wa-border);
   border-radius: 10px;
   padding: 8px 10px;
   margin-bottom: 8px;
-  box-shadow: var(--color-shadow);
+  box-shadow: none;
 }
 
 .subsection {
   padding: 12px 0;
-  border-bottom: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--wa-border);
 }
 
 .subsection:last-child {
@@ -271,7 +271,7 @@
 
 .info-text {
   font-size: 0.875rem;
-  color: var(--color-text-secondary);
+  color: var(--wa-text-muted);
   margin: 8px 0;
   line-height: 1.5;
 }
@@ -336,11 +336,12 @@
 
 .upload-tile {
   display: block;
-  border: 1px dashed var(--color-border);
+  border: 1px dashed var(--wa-border);
   border-radius: 12px;
   padding: 12px;
   cursor: pointer;
-  background: var(--color-bg-secondary);
+  background: var(--wa-bg);
+  color: var(--wa-text);
   transition: border 0.2s ease, background 0.2s ease;
 }
 
@@ -354,6 +355,16 @@
   border-style: solid;
   background: #f0f7ff;
   box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+/* Dark mode overrides for upload tile */
+:root.theme-dark .upload-tile:hover {
+  background: rgba(37, 99, 235, 0.12);
+}
+
+:root.theme-dark .upload-tile.dragover {
+  background: rgba(37, 99, 235, 0.18);
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.8);
 }
 
 .upload-tile input {
@@ -376,15 +387,44 @@
 
 .instruction-tile {
   display: block;
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--wa-border);
   border-radius: 12px;
   padding: 12px;
-  background: var(--color-bg-secondary);
+  background: var(--wa-panel-bg);
+  color: var(--wa-text);
   font-size: 0.875rem;
 }
 
 .instruction-tile p {
   margin: 0;
+}
+
+.instruction-tile .link-button {
+  background: none;
+  border: none;
+  color: var(--color-primary, #6366f1);
+  cursor: pointer;
+  padding: 0;
+  margin: 0 4px;
+  font-size: inherit;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.instruction-tile .link-button:hover {
+  color: var(--color-primary-hover, #4f46e5);
+}
+
+.instruction-tile .link-button:active {
+  transform: scale(0.98);
+}
+
+/* Hide "Open map" button on desktop */
+@media (min-width: 992px) {
+  .instruction-tile .link-button {
+    display: none;
+  }
 }
 
 .field {
@@ -425,15 +465,16 @@
 
 .field label {
   font-weight: 600;
-  color: var(--color-text);
+  color: var(--wa-text);
 }
 
 .field input,
 .field select {
   padding: 8px 10px;
   border-radius: 8px;
-  border: 1px solid var(--color-border);
-  background: white;
+  border: 1px solid var(--wa-border);
+  background: var(--wa-bg);
+  color: var(--wa-text);
 }
 
 .slider-row {
@@ -529,7 +570,7 @@
 .segmented-control {
   display: flex;
   gap: 0;
-  background: var(--color-bg-secondary);
+  background: var(--wa-step-bg);
   border-radius: var(--radius-md);
   padding: 4px;
   width: 100%;
@@ -543,19 +584,20 @@
   border-radius: calc(var(--radius-md) - 2px);
   font-size: var(--font-size-sm);
   font-weight: 500;
-  color: var(--color-text-secondary);
+  color: var(--wa-text-muted);
   cursor: pointer;
   transition: all 0.2s ease;
+  white-space: nowrap;
 }
 
 .segmented-option:hover {
-  background: rgba(0, 0, 0, 0.05);
+  background: var(--wa-bg);
 }
 
 .segmented-option.active {
-  background: white;
+  background: var(--wa-card-bg);
   color: var(--color-primary);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--wa-card-shadow);
   font-weight: 600;
 }
 
@@ -686,8 +728,8 @@
 }
 
 .progress {
-  background: white;
-  border: 1px solid var(--color-border);
+  background: var(--wa-bg);
+  border: 1px solid var(--wa-border);
   border-radius: 10px;
   padding: 8px;
   box-shadow: var(--color-shadow);
@@ -753,9 +795,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 12px 10px;
-    border-bottom: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--wa-border);
     flex-shrink: 0;
-    background: white;
+    background: var(--wa-card-bg);
     gap: 12px;
     border-radius: 16px 16px 0 0;
   }
@@ -765,38 +807,50 @@
     font-size: 18px;
     font-weight: 700;
     flex-shrink: 0;
+    color: var(--wa-text);
   }
 
-  /* in-panel collapse button shown when sheet is open */
+  /* in-panel collapse button shown when sheet is open - minimal edge tab */
   .sheet-collapse-btn.in-panel {
     display: flex !important; /* Override mobile hide */
     position: absolute;
-    top: 12px;
-    left: -48px;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.95);
+    top: 50%;
+    transform: translateY(-50%);
+    left: -28px;
+    width: 28px;
+    height: 64px;
+    background: var(--wa-glass-bg);
     backdrop-filter: blur(16px);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
+    border: 1px solid var(--wa-border);
+    border-radius: 8px 0 0 8px;
+    border-right: none;
     cursor: pointer;
     align-items: center;
     justify-content: center;
-    font-size: 18px;
-    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.08);
     z-index: 170;
+    transition: all 0.2s ease;
+    color: var(--wa-text);
+  }
+
+  .sheet-collapse-btn.in-panel:hover {
+    background: var(--wa-card-bg);
+    box-shadow: -2px 2px 12px rgba(0, 0, 0, 0.12);
+    width: 32px;
+    left: -32px;
   }
 
   .sheet {
     position: fixed;
-    top: 20px;
+    top: calc(var(--wa-header-height, 56px) + 20px);
     right: 20px;
     bottom: auto;
     left: auto;
     width: 400px;
     height: auto;
-    max-height: calc(100vh - 20px);
-    background: rgba(255, 255, 255, 0.95);
+    max-height: calc(100vh - var(--wa-header-height, 56px) - 40px);
+    background: var(--wa-glass-bg);
     backdrop-filter: blur(16px);
     box-shadow: -8px 0 24px rgba(0, 0, 0, 0.16);
     border-radius: 16px;
@@ -827,26 +881,30 @@
   .sheet-toggle {
     display: flex !important; /* Override mobile hide */
     position: fixed;
-    top: 24px;
+    top: 50%;
+    transform: translateY(-50%);
     right: 20px;
-    width: 40px;
-    height: 40px;
-    background: rgba(255, 255, 255, 0.95);
+    width: 28px;
+    height: 64px;
+    background: var(--wa-glass-bg);
     backdrop-filter: blur(16px);
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
+    border: 1px solid var(--wa-border);
+    border-radius: 8px 0 0 8px;
+    border-right: none;
     cursor: pointer;
     align-items: center;
     justify-content: center;
-    font-size: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    font-size: 16px;
+    box-shadow: -2px 2px 8px rgba(0, 0, 0, 0.08);
     transition: all 0.2s ease;
     z-index: 150; /* stay above map controls */
-    color: var(--color-text, #111);
+    color: var(--wa-text);
   }
 
-  .sheet-collapse-btn:hover {
-    background: white;
-    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+  .sheet-toggle:hover {
+    background: var(--wa-card-bg);
+    box-shadow: -2px 2px 12px rgba(0, 0, 0, 0.12);
+    width: 32px;
+    right: 24px;
   }
 }

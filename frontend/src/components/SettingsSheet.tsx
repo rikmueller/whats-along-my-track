@@ -30,7 +30,6 @@ type Props = {
   onDeletePreset: (preset: string) => void
   onDeleteIncludeFilter: (filter: string) => void
   onDeleteExcludeFilter: (filter: string) => void
-  onOpenHelp: () => void
   shouldPulseFab?: boolean
   onFabClick?: () => void
 }
@@ -340,8 +339,10 @@ export default function SettingsSheet({
           <div className="instruction-tile">
             <p>
               {markerPosition 
-                ? 'Marker is set on map, change position by dragging.'
-                : 'Click the map to place a marker at the desired position.'}
+                ? status 
+                  ? 'Marking is locked, clear coordinates to reset.'
+                  : 'Marker is set, click on the map to change it'
+                : <>Click the map to place a marker. <button className="link-button" onClick={onToggle} title="Close settings to access map">Open map</button></>}
             </p>
           </div>
         </section>

@@ -5,12 +5,12 @@ import {
   GeoJsonResponse,
   JobStatus,
 } from './api'
-import BrandingHeader from './components/BrandingHeader'
+import Header from './components/Header'
 import InteractiveMap, { MapPoi, TileSource } from './components/InteractiveMap'
 import SettingsSheet from './components/SettingsSheet'
 import PresetSelectionModal from './components/PresetSelectionModal'
 import FilterSelectionModal from './components/FilterSelectionModal'
-import Modal from './components/Modal'
+import SeoMeta from './components/SeoMeta'
 import { useWebSocket } from './hooks/useWebSocket'
 import './DevApp.css'
 
@@ -39,6 +39,10 @@ const TILE_SOURCES: TileSource[] = [
 ]
 
 const LOCAL_STORAGE_TILE_KEY = 'whatsaround.tile'
+const LOCAL_STORAGE_SETTINGS_KEY = 'whatsaround.settings'
+const LOCAL_STORAGE_TRACK_DATA_KEY = 'whatsaround.trackData'
+const LOCAL_STORAGE_MARKER_POSITION_KEY = 'whatsaround.markerPosition'
+const LOCAL_STORAGE_INPUT_MODE_KEY = 'whatsaround.inputMode'
 
 function loadTilePreference(): string {
   if (typeof window === 'undefined') return TILE_SOURCES[0].id
@@ -50,6 +54,98 @@ function saveTilePreference(tileId: string) {
     localStorage.setItem(LOCAL_STORAGE_TILE_KEY, tileId)
   } catch (err) {
     console.warn('Could not persist tile preference', err)
+  }
+}
+
+function loadSettings(): Settings | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_SETTINGS_KEY)
+    return saved ? JSON.parse(saved) : null
+  } catch (err) {
+    console.warn('Could not load settings from localStorage', err)
+    return null
+  }
+}
+
+function saveSettings(settings: Settings) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_SETTINGS_KEY, JSON.stringify(settings))
+  } catch (err) {
+    console.warn('Could not persist settings', err)
+  }
+}
+
+function loadTrackData() {
+  if (typeof window === 'undefined') return null
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_TRACK_DATA_KEY)
+    return saved ? JSON.parse(saved) : null
+  } catch (err) {
+    console.warn('Could not load track data from localStorage', err)
+    return null
+  }
+}
+
+function saveTrackData(trackData: [number, number][]) {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_TRACK_DATA_KEY, JSON.stringify(trackData))
+  } catch (err) {
+    console.warn('Could not persist track data', err)
+  }
+}
+
+function loadMarkerPosition(): [number, number] | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_MARKER_POSITION_KEY)
+    return saved ? JSON.parse(saved) : null
+  } catch (err) {
+    console.warn('Could not load marker position from localStorage', err)
+    return null
+  }
+}
+
+function saveMarkerPosition(position: [number, number] | null) {
+  try {
+    if (position) {
+      localStorage.setItem(LOCAL_STORAGE_MARKER_POSITION_KEY, JSON.stringify(position))
+    } else {
+      localStorage.removeItem(LOCAL_STORAGE_MARKER_POSITION_KEY)
+    }
+  } catch (err) {
+    console.warn('Could not persist marker position', err)
+  }
+}
+
+function loadInputMode(): 'track' | 'marker' | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_INPUT_MODE_KEY)
+    if (saved === 'track' || saved === 'marker') return saved
+    return null
+  } catch (err) {
+    console.warn('Could not load input mode from localStorage', err)
+    return null
+  }
+}
+
+function saveInputMode(mode: 'track' | 'marker') {
+  try {
+    localStorage.setItem(LOCAL_STORAGE_INPUT_MODE_KEY, mode)
+  } catch (err) {
+    console.warn('Could not persist input mode', err)
+  }
+}
+
+function clearPersistedSettings() {
+  try {
+    localStorage.removeItem(LOCAL_STORAGE_SETTINGS_KEY)
+    localStorage.removeItem(LOCAL_STORAGE_TRACK_DATA_KEY)
+    localStorage.removeItem(LOCAL_STORAGE_MARKER_POSITION_KEY)
+    localStorage.removeItem(LOCAL_STORAGE_INPUT_MODE_KEY)
+  } catch (err) {
+    console.warn('Could not clear persisted settings', err)
   }
 }
 
@@ -92,6 +188,14 @@ async function parseGPXFile(file: File): Promise<[number, number][]> {
 
 type FilterModalMode = 'include' | 'exclude'
 
+type Settings = {
+  projectName: string
+  radiusKm: number
+  includes: string[]
+  excludes: string[]
+  presets: string[]
+}
+
 function DevApp() {
   const [config, setConfig] = useState<ConfigResponse | null>(null)
   const [jobId, setJobId] = useState<string | null>(null)
@@ -99,26 +203,32 @@ function DevApp() {
   const [error, setError] = useState<string | null>(null)
   const [notification, setNotification] = useState<string | null>(null)
   const [uploadedFile, setUploadedFile] = useState<File | null>(null)
-  const [trackData, setTrackData] = useState<[number, number][]>([])
+  const [trackData, setTrackData] = useState<[number, number][]>(() => loadTrackData() || [])
   const [poiData, setPoiData] = useState<MapPoi[]>([])
-  const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(null)
-  const [inputMode, setInputMode] = useState<'track' | 'marker'>('track')
+  const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(() => loadMarkerPosition())
+  const [inputMode, setInputMode] = useState<'track' | 'marker'>(() => {
+    const savedMode = loadInputMode()
+    if (savedMode) return savedMode
+    return loadMarkerPosition() ? 'marker' : 'track'
+  })
   const [sheetOpen, setSheetOpen] = useState(() => window.innerWidth >= 992)
   const [tileId, setTileId] = useState<string>(loadTilePreference())
   const [pulseFab, setPulseFab] = useState(() => window.innerWidth < 992)
 
-  const [settings, setSettings] = useState({
-    projectName: '',
-    radiusKm: 5,
-    includes: [] as string[],
-    excludes: [] as string[],
-    presets: [] as string[],
+  const [settings, setSettings] = useState<Settings>(() => {
+    const saved = loadSettings()
+    return saved || {
+      projectName: '',
+      radiusKm: 5,
+      includes: [] as string[],
+      excludes: [] as string[],
+      presets: [] as string[],
+    }
   })
 
   const [presetModalOpen, setPresetModalOpen] = useState(false)
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [filterModalMode, setFilterModalMode] = useState<FilterModalMode>('include')
-  const [helpOpen, setHelpOpen] = useState(false)
 
   const fetchGeoJson = useCallback(
     async (id: string) => {
@@ -178,19 +288,23 @@ function DevApp() {
     }
   }, [jobStatus])
 
-  // Load config
+  // Load config and restore settings from localStorage
   useEffect(() => {
     const load = async () => {
       try {
         const cfg = await apiClient.getConfig()
         setConfig(cfg)
-        setSettings((prev) => ({
-          ...prev,
-          projectName: cfg.defaults.project_name,
-          radiusKm: cfg.defaults.radius_km,
-          includes: cfg.defaults.include,
-          excludes: cfg.defaults.exclude,
-        }))
+        // Only override settings from config if they weren't already loaded from localStorage
+        const savedSettings = loadSettings()
+        if (!savedSettings) {
+          setSettings((prev: Settings) => ({
+            ...prev,
+            projectName: cfg.defaults.project_name,
+            radiusKm: cfg.defaults.radius_km,
+            includes: cfg.defaults.include,
+            excludes: cfg.defaults.exclude,
+          }))
+        }
       } catch (err) {
         setError(`Failed to load config: ${err}`)
       }
@@ -202,6 +316,36 @@ function DevApp() {
   useEffect(() => {
     if (tileId) saveTilePreference(tileId)
   }, [tileId])
+
+  // Auto-save settings to localStorage whenever they change (but only after config is loaded)
+  useEffect(() => {
+    if (!config) return // Don't save until config is loaded
+    saveSettings(settings)
+  }, [settings, config])
+
+  // Auto-save track data to localStorage whenever it changes
+  useEffect(() => {
+    if (trackData.length > 0) {
+      saveTrackData(trackData)
+    } else {
+      // Clear track data from localStorage if empty
+      try {
+        localStorage.removeItem(LOCAL_STORAGE_TRACK_DATA_KEY)
+      } catch (err) {
+        console.warn('Could not clear track data from localStorage', err)
+      }
+    }
+  }, [trackData])
+
+  // Auto-save marker position to localStorage whenever it changes
+  useEffect(() => {
+    saveMarkerPosition(markerPosition)
+  }, [markerPosition])
+
+  // Auto-save input mode to localStorage whenever it changes
+  useEffect(() => {
+    saveInputMode(inputMode)
+  }, [inputMode])
 
   const tileSource = useMemo(
     () => TILE_SOURCES.find((t) => t.id === tileId) || TILE_SOURCES[0],
@@ -219,7 +363,6 @@ function DevApp() {
     try {
       const trackPoints = await parseGPXFile(file)
       setTrackData(trackPoints)
-      setMarkerPosition(null) // Clear marker when track uploaded
       setPoiData([]) // Clear POIs from previous run
       setJobStatus(null) // Reset job status
       setJobId(null) // Clear job ID
@@ -233,14 +376,12 @@ function DevApp() {
   }
 
   const handleSettingsChange = (changes: Partial<typeof settings>) => {
-    setSettings((prev) => ({ ...prev, ...changes }))
+    setSettings((prev: Settings) => ({ ...prev, ...changes }))
   }
 
   const handleMarkerChange = (position: [number, number] | null) => {
     setMarkerPosition(position)
     if (position) {
-      setTrackData([]) // Clear track when marker placed
-      setUploadedFile(null)
       setInputMode('marker')
       setError(null)
     }
@@ -251,25 +392,19 @@ function DevApp() {
     setPoiData([]) // Clear POIs from previous run
     setJobStatus(null) // Reset job status
     setJobId(null) // Clear job ID
-    setInputMode('track')
   }
 
   const handleToggleMarkerMode = () => {
     if (inputMode === 'marker') {
-      // Disable marker mode - clear marker and track, switch to track mode
-      setMarkerPosition(null)
-      setTrackData([])
+      // Disable marker mode - switch to track mode
       setPoiData([]) // Clear POIs from previous run
       setJobStatus(null) // Reset job status
       setJobId(null) // Clear job ID
       setInputMode('track')
       setError(null)
     } else {
-      // Enable marker mode - switch to marker mode (marker position will be set by map center)
-      // Clear track and uploaded file
-      setMarkerPosition(null) // Will be set by InteractiveMap based on current map center
-      setTrackData([])
-      setUploadedFile(null)
+      // Enable marker mode - switch to marker mode, marker is set by user click
+      // Keep existing track and marker data for quick mode switching
       setPoiData([]) // Clear POIs from previous run
       setJobStatus(null) // Reset job status
       setJobId(null) // Clear job ID
@@ -315,14 +450,16 @@ function DevApp() {
       setJobStatus(null) // Reset job status when starting new processing
       setPoiData([]) // Clear only POIs, keep track visible
 
+      const fileToSend = inputMode === 'track' ? uploadedFile : null
+      const markerToSend = inputMode === 'marker' ? markerPosition : null
       const result = await apiClient.startProcessing(
-        uploadedFile,
+        fileToSend,
         settings.projectName,
         settings.radiusKm,
         settings.includes,
         settings.excludes,
         settings.presets,
-        markerPosition,
+        markerToSend,
       )
 
       setJobId(result.job_id)
@@ -340,6 +477,9 @@ function DevApp() {
   }
 
   const handleReset = () => {
+    // Clear localStorage persistence
+    clearPersistedSettings()
+    
     setJobId(null)
     setJobStatus(null)
     setTrackData([])
@@ -365,8 +505,6 @@ function DevApp() {
     setFilterModalOpen(true)
   }
   const closeFilterModal = () => setFilterModalOpen(false)
-  const openHelpModal = () => setHelpOpen(true)
-  const closeHelpModal = () => setHelpOpen(false)
 
   const presetsDetail = config?.presets_detail || {}
 
@@ -381,9 +519,9 @@ function DevApp() {
       (p) => presetsDetail[p]?.include || [],
     )
     const excludesFromPresets = selectedPresets.flatMap(
-      (p) => presetsDetail[p]?.exclude || [],
+      (p: string) => presetsDetail[p]?.exclude || [],
     )
-    setSettings((prev) => ({
+    setSettings((prev: Settings) => ({
       ...prev,
       presets: selectedPresets,
       includes: Array.from(new Set([...manualIncludes, ...includesFromPresets])),
@@ -430,7 +568,7 @@ function DevApp() {
         (p) => presetsDetail[p]?.exclude || [],
       )
       
-      setSettings((prev) => ({
+      setSettings((prev: Settings) => ({
         ...prev,
         presets: remainingPresets,
         includes: Array.from(new Set([...currentManualIncludes, ...filtersFromRemovedPresets, ...includesFromRemainingPresets])),
@@ -438,9 +576,9 @@ function DevApp() {
       }))
     } else {
       // Filter was manually added, just remove it
-      setSettings((prev) => ({
+      setSettings((prev: Settings) => ({
         ...prev,
-        includes: prev.includes.filter((f) => f !== filter),
+        includes: prev.includes.filter((f: string) => f !== filter),
       }))
     }
   }
@@ -470,40 +608,41 @@ function DevApp() {
         (p) => presetsDetail[p]?.include || [],
       )
       const excludesFromRemainingPresets = remainingPresets.flatMap(
-        (p) => presetsDetail[p]?.exclude || [],
+        (p: string) => presetsDetail[p]?.exclude || [],
       )
       
-      setSettings((prev) => ({
+      setSettings((prev: Settings) => ({
         ...prev,
         presets: remainingPresets,
-        includes: Array.from(new Set([...prev.includes.filter((f) => !allPresetFilters.includes(f)), ...includesFromRemainingPresets])),
+        includes: Array.from(new Set([...prev.includes.filter((f: string) => !allPresetFilters.includes(f)), ...includesFromRemainingPresets])),
         excludes: Array.from(new Set([...currentManualFilters, ...filtersFromRemovedPresets, ...excludesFromRemainingPresets])),
       }))
     } else {
       // Filter was manually added, just remove it
-      setSettings((prev) => ({
+      setSettings((prev: Settings) => ({
         ...prev,
-        excludes: prev.excludes.filter((f) => f !== filter),
+        excludes: prev.excludes.filter((f: string) => f !== filter),
       }))
     }
   }
 
   return (
     <div className={`dev-app ${sheetOpen ? 'sheet-open' : 'sheet-closed'}`}>
-      <BrandingHeader
-        title="WhatsAround"
-        subtitle="Plan smarter nearby"
-        onHelpClick={openHelpModal}
+      <SeoMeta
+        title="App | WhatsAround"
+        description="Run POI searches with custom filters, view results on a live map, and export Excel or HTML maps."
+        url="https://getwhatsaround.app/app"
       />
+      <Header logoHref="/app" />
       {notification && (
         <div style={{
           position: 'fixed',
-          top: '52%',
+          top: '65%',
           left: '50%',
-          transform: 'translateX(-50%)',
+          transform: 'translate(-50%, -50%)',
           background: 'white',
           color: '#1f2937',
-          padding: '12px 16px',
+          padding: '0',
           borderRadius: '8px',
           fontSize: '14px',
           zIndex: 170,
@@ -515,9 +654,9 @@ function DevApp() {
         </div>
       )}
       <InteractiveMap
-        track={trackData}
+        track={inputMode === 'track' ? trackData : []}
         pois={poiData}
-        markerPosition={markerPosition}
+        markerPosition={inputMode === 'marker' ? markerPosition : null}
         onMarkerChange={handleMarkerChange}
         inputMode={inputMode}
         tileSource={tileSource}
@@ -547,7 +686,6 @@ function DevApp() {
         onDeletePreset={deletePresetFromChip}
         onDeleteIncludeFilter={deleteIncludeFilterFromChip}
         onDeleteExcludeFilter={deleteExcludeFilterFromChip}
-        onOpenHelp={openHelpModal}
         shouldPulseFab={pulseFab}
         onFabClick={() => setPulseFab(false)}
       />
@@ -568,8 +706,8 @@ function DevApp() {
         mode={filterModalMode}
         existing={filterModalMode === 'include' ? settings.includes : settings.excludes}
         onClose={closeFilterModal}
-        onSave={(filters) => {
-          setSettings((prev) => ({
+        onSave={(filters: string[]) => {
+          setSettings((prev: Settings) => ({
             ...prev,
             [filterModalMode === 'include' ? 'includes' : 'excludes']: filters,
           }))
@@ -581,42 +719,6 @@ function DevApp() {
           closeFilterModal()
         }}
       />
-
-      <Modal open={helpOpen} title="Quickstart" onClose={closeHelpModal}>
-        <div className="help-content">
-
-          <p>
-            Find points of interest (POIs) from OpenStreetMap along your GPX track or around a map marker.
-            Search for campsites, water sources, shelters, and more within a custom radius.
-          </p>
-          
-          <h4>Project Settings</h4>
-          <p>
-            <strong>Project name</strong>: Used for download filenames.<br />
-            <strong>Search radius</strong>: How far from the track/marker to search (1-50 km).<br />
-            <strong>Input mode</strong>: Choose <strong>GPX Track</strong> to search along a route, or <strong>Map Marker</strong> to search around a single point.
-          </p>
-          
-          <h4>Input Modes</h4>
-          <p>
-            <strong>GPX Track</strong>: Upload a .gpx file to search for POIs along your entire route. The track appears on the map immediately after upload.<br />
-            <strong>Map Marker</strong>: Place a marker directly on the map by dragging it to your desired location. Perfect for searching around a single point without uploading a file.
-          </p>
-          
-          <h4>Presets &amp; Filters</h4>
-          <p>
-            <strong>Presets</strong>: Pre-configured filter sets (e.g., "Campsites", "Drinking Water").<br />
-            <strong>Include filters</strong>: OSM tags to find (e.g., <code>tourism=camp_site</code>).<br />
-            <strong>Exclude filters</strong>: Remove unwanted results (e.g., <code>tents=no</code>).<br />
-            At least one preset or include filter is required.
-          </p>
-          
-          <h4>Downloads</h4>
-          <p>
-            After processing completes, download the <strong>Excel file</strong> (table with all POIs) or the <strong>HTML map</strong> (interactive Folium map with markers).
-          </p>
-        </div>
-      </Modal>
     </div>
   )
 }
