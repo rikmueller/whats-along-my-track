@@ -269,7 +269,7 @@ function computePadding() {
   return { padTop, padLeft, padRight, padBottom, occLeft, occRight }
 }
 
-function FitBounds({ track, pois, markerPosition, skipAutoFit }: { track: [number, number][]; pois: MapPoi[]; markerPosition: [number, number] | null; skipAutoFit: boolean }) {
+function FitBounds({ track, pois, markerPosition }: { track: [number, number][]; pois: MapPoi[]; markerPosition: [number, number] | null }) {
   const map = useMap()
 
   const userMovedRef = useRef(false)
@@ -680,8 +680,6 @@ export default function InteractiveMap({ track, pois, markerPosition, onMarkerCh
     return `${tLen}:${tFirst?.join(',')}:${tLast?.join(',')}:${pLen}:${pFirst?.join(',')}:${pLast?.join(',')}:${markerSig}`
   }, [track, pois, markerPosition])
 
-  const skipAutoFit = Boolean(restoredSignature && restoredSignature === mapSignature)
-
   // Build filter-to-color mapping based on unique filters in order of appearance
   const filterColorMap = useMemo(() => {
     const uniqueFilters = Array.from(new Set(pois.map((p) => p.matchingFilter).filter(Boolean)))
@@ -819,7 +817,7 @@ export default function InteractiveMap({ track, pois, markerPosition, onMarkerCh
             </Marker>
           )
         })}
-        <FitBounds track={track} pois={pois} markerPosition={markerPosition} skipAutoFit={skipAutoFit} />
+        <FitBounds track={track} pois={pois} markerPosition={markerPosition} />
         <ScaleControl />
         <LocateButton />
         <RecenterButton track={track} pois={pois} markerPosition={markerPosition} />
