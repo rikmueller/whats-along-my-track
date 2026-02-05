@@ -342,7 +342,7 @@ export default function SettingsSheet({
                 ? status 
                   ? 'Marking is locked, clear coordinates to reset.'
                   : 'Marker is set, click on the map to change it'
-                : 'Click the map to place a marker.'}
+                : <>Click the map to place a marker. <button className="link-button" onClick={onToggle} title="Close settings to access map">Open map</button></>}
             </p>
           </div>
         </section>

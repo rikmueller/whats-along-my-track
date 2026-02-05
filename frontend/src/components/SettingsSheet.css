@@ -399,6 +399,34 @@
   margin: 0;
 }
 
+.instruction-tile .link-button {
+  background: none;
+  border: none;
+  color: var(--color-primary, #6366f1);
+  cursor: pointer;
+  padding: 0;
+  margin: 0 4px;
+  font-size: inherit;
+  text-decoration: underline;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.instruction-tile .link-button:hover {
+  color: var(--color-primary-hover, #4f46e5);
+}
+
+.instruction-tile .link-button:active {
+  transform: scale(0.98);
+}
+
+/* Hide "Open map" button on desktop */
+@media (min-width: 992px) {
+  .instruction-tile .link-button {
+    display: none;
+  }
+}
+
 .field {
   display: flex;
   flex-direction: column;
