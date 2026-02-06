@@ -32,6 +32,7 @@ type Props = {
   onDeleteExcludeFilter: (filter: string) => void
   shouldPulseFab?: boolean
   onFabClick?: () => void
+  isSearchDisabled?: boolean
 }
 
 export default function SettingsSheet({
@@ -57,6 +58,7 @@ export default function SettingsSheet({
   onDeleteExcludeFilter,
   shouldPulseFab = false,
   onFabClick,
+  isSearchDisabled = false,
 }: Props) {
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -177,7 +179,11 @@ export default function SettingsSheet({
             <button className="btn btn-secondary btn-compact" onClick={onReset}>
               Reset
             </button>
-            <button className="btn btn-primary btn-compact" onClick={onStart}>
+            <button 
+              className="btn btn-primary btn-compact" 
+              onClick={onStart}
+              disabled={status?.state === 'processing' || isSearchDisabled}
+            >
               {status?.state === 'processing' ? 'Searching...' : 'Search'}
             </button>
             <button
@@ -198,7 +204,11 @@ export default function SettingsSheet({
             <button className="btn btn-secondary btn-compact" onClick={onReset}>
               Reset
             </button>
-            <button className="btn btn-primary btn-compact" onClick={onStart}>
+            <button 
+              className="btn btn-primary btn-compact" 
+              onClick={onStart}
+              disabled={status?.state === 'processing' || isSearchDisabled}
+            >
               {status?.state === 'processing' ? 'Searching...' : 'Search'}
             </button>
           </div>
