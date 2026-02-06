@@ -44,6 +44,14 @@ const LOCAL_STORAGE_SETTINGS_KEY = 'whatsaround.settings'
 const LOCAL_STORAGE_TRACK_DATA_KEY = 'whatsaround.trackData'
 const LOCAL_STORAGE_MARKER_POSITION_KEY = 'whatsaround.markerPosition'
 const LOCAL_STORAGE_INPUT_MODE_KEY = 'whatsaround.inputMode'
+const LOCAL_STORAGE_TRACK_RESULTS_KEY = 'whatsaround.trackResults'
+const LOCAL_STORAGE_MARKER_RESULTS_KEY = 'whatsaround.markerResults'
+
+type SavedResults = {
+  poiData: MapPoi[]
+  jobStatus: JobStatus | null
+  jobId: string | null
+}
 
 function loadTilePreference(): string {
   if (typeof window === 'undefined') return TILE_SOURCES[0].id
@@ -139,12 +147,44 @@ function saveInputMode(mode: 'track' | 'marker') {
   }
 }
 
+function loadResultsForMode(mode: 'track' | 'marker'): SavedResults | null {
+  if (typeof window === 'undefined') return null
+  try {
+    const key = mode === 'track' ? LOCAL_STORAGE_TRACK_RESULTS_KEY : LOCAL_STORAGE_MARKER_RESULTS_KEY
+    const saved = localStorage.getItem(key)
+    return saved ? JSON.parse(saved) : null
+  } catch (err) {
+    console.warn(`Could not load ${mode} results from localStorage`, err)
+    return null
+  }
+}
+
+function saveResultsForMode(mode: 'track' | 'marker', results: SavedResults) {
+  try {
+    const key = mode === 'track' ? LOCAL_STORAGE_TRACK_RESULTS_KEY : LOCAL_STORAGE_MARKER_RESULTS_KEY
+    localStorage.setItem(key, JSON.stringify(results))
+  } catch (err) {
+    console.warn(`Could not persist ${mode} results`, err)
+  }
+}
+
+function clearResultsForMode(mode: 'track' | 'marker') {
+  try {
+    const key = mode === 'track' ? LOCAL_STORAGE_TRACK_RESULTS_KEY : LOCAL_STORAGE_MARKER_RESULTS_KEY
+    localStorage.removeItem(key)
+  } catch (err) {
+    console.warn(`Could not clear ${mode} results from localStorage`, err)
+  }
+}
+
 function clearPersistedSettings() {
   try {
     localStorage.removeItem(LOCAL_STORAGE_SETTINGS_KEY)
     localStorage.removeItem(LOCAL_STORAGE_TRACK_DATA_KEY)
     localStorage.removeItem(LOCAL_STORAGE_MARKER_POSITION_KEY)
     localStorage.removeItem(LOCAL_STORAGE_INPUT_MODE_KEY)
+    localStorage.removeItem(LOCAL_STORAGE_TRACK_RESULTS_KEY)
+    localStorage.removeItem(LOCAL_STORAGE_MARKER_RESULTS_KEY)
   } catch (err) {
     console.warn('Could not clear persisted settings', err)
   }
@@ -316,6 +356,24 @@ function DevApp() {
             excludes: cfg.defaults.exclude,
           }))
         }
+        
+        // Restore search results for current input mode
+        const savedResults = loadResultsForMode(inputMode)
+        if (savedResults) {
+          setPoiData(savedResults.poiData)
+          setJobStatus(savedResults.jobStatus)
+          setJobId(savedResults.jobId)
+          // Restore lastProcessedSettings if job was completed
+          if (savedResults.jobStatus?.state === 'completed') {
+            setLastProcessedSettings({
+              ...settings,
+              inputMode,
+              fileName: uploadedFile?.name,
+              markerLat: markerPosition?.[0],
+              markerLon: markerPosition?.[1],
+            })
+          }
+        }
       } catch (err) {
         setError(`Failed to load config: ${err}`)
       }
@@ -358,6 +416,16 @@ function DevApp() {
     saveInputMode(inputMode)
   }, [inputMode])
 
+  // Auto-save results to localStorage when job completes
+  useEffect(() => {
+    if (jobStatus?.state === 'completed' && poiData.length > 0) {
+      saveResultsForMode(inputMode, { poiData, jobStatus, jobId })
+    } else if (jobStatus?.state === 'failed') {
+      // Clear saved results on error
+      clearResultsForMode(inputMode)
+    }
+  }, [jobStatus, poiData, jobId, inputMode])
+
   const tileSource = useMemo(
     () => TILE_SOURCES.find((t) => t.id === tileId) || TILE_SOURCES[0],
     [tileId]
@@ -378,6 +446,7 @@ function DevApp() {
       setPoiData([]) // Clear POIs from previous run
       setJobStatus(null) // Reset job status
       setJobId(null) // Clear job ID
+      clearResultsForMode('track') // Clear saved track results
       setInputMode('track')
       setError(null) // Clear any previous errors
     } catch (err) {
@@ -396,6 +465,11 @@ function DevApp() {
     setMarkerPosition(position)
     setLastProcessedSettings(null) // Clear snapshot when marker changes
     if (position) {
+      // Clear marker results when marker position changes
+      setPoiData([]) // Clear POIs from previous run
+      setJobStatus(null) // Reset job status
+      setJobId(null) // Clear job ID
+      clearResultsForMode('marker') // Clear saved marker results
       setInputMode('marker')
       setError(null)
     }
@@ -407,34 +481,42 @@ function DevApp() {
     setPoiData([]) // Clear POIs from previous run
     setJobStatus(null) // Reset job status
     setJobId(null) // Clear job ID
+    clearResultsForMode('marker') // Clear saved marker results
   }
 
   const handleToggleMarkerMode = () => {
+    const oldMode = inputMode
+    const newMode = inputMode === 'marker' ? 'track' : 'marker'
+    
+    // Save current results before switching
+    if (jobStatus?.state === 'completed' && poiData.length > 0) {
+      saveResultsForMode(oldMode, { poiData, jobStatus, jobId })
+    }
+    
     setLastProcessedSettings(null) // Clear snapshot when input mode changes
-    if (inputMode === 'marker') {
-      // Disable marker mode - switch to track mode
-      setPoiData([]) // Clear POIs from previous run
-      setJobStatus(null) // Reset job status
-      setJobId(null) // Clear job ID
-      setInputMode('track')
-      setError(null)
+    
+    // Load results for new mode
+    const savedResults = loadResultsForMode(newMode)
+    if (savedResults) {
+      setPoiData(savedResults.poiData)
+      setJobStatus(savedResults.jobStatus)
+      setJobId(savedResults.jobId)
     } else {
-      // Enable marker mode - switch to marker mode, marker is set by user click
-      // Keep existing track and marker data for quick mode switching
-      setPoiData([]) // Clear POIs from previous run
+      // No saved results for this mode, clear everything
+      setPoiData([]) // Clear POIs from previous mode
       setJobStatus(null) // Reset job status
       setJobId(null) // Clear job ID
-      setInputMode('marker')
-      setError(null)
-      
-      // On mobile, close settings panel so user can see the map and marker
-      if (window.innerWidth < 992) {
-        setSheetOpen(false)
-        setNotification('Please place the marker at the desired position and open the settings again.')
-        // Auto-dismiss notification after 5 seconds
-        const timer = setTimeout(() => setNotification(null), 5000)
-        return () => clearTimeout(timer)
-      }
+    }
+    
+    setInputMode(newMode)
+    setError(null)
+    
+    // On mobile switching to marker mode, close settings panel so user can see the map
+    if (newMode === 'marker' && window.innerWidth < 992) {
+      setSheetOpen(false)
+      setNotification('Please place the marker at the desired position and open the settings again.')
+      // Auto-dismiss notification after 5 seconds
+      setTimeout(() => setNotification(null), 5000)
     }
   }
 
