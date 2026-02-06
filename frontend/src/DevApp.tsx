@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
   apiClient,
   ConfigResponse,
@@ -272,6 +272,7 @@ function DevApp() {
   const [sheetOpen, setSheetOpen] = useState(() => window.innerWidth >= 992)
   const [tileId, setTileId] = useState<string>(loadTilePreference())
   const [pulseFab, setPulseFab] = useState(() => window.innerWidth < 992)
+  const previousJobState = useRef<JobStatus['state'] | null>(null)
 
   const [settings, setSettings] = useState<Settings>(() => {
     const saved = loadSettings()
@@ -351,9 +352,15 @@ function DevApp() {
 
   // Close settings sheet on mobile when processing completes
   useEffect(() => {
-    if (jobStatus && jobStatus.state === 'completed' && window.innerWidth < 992) {
+    const prevState = previousJobState.current
+    const justCompleted =
+      (prevState === 'queued' || prevState === 'processing') &&
+      jobStatus?.state === 'completed'
+
+    if (justCompleted && window.innerWidth < 992) {
       setSheetOpen(false)
     }
+    previousJobState.current = jobStatus?.state ?? null
   }, [jobStatus])
 
   // Load config and restore settings from localStorage
@@ -492,6 +499,12 @@ function DevApp() {
     setJobStatus(null) // Reset job status
     setJobId(null) // Clear job ID
     clearResultsForMode('marker') // Clear saved marker results
+
+    if (window.innerWidth < 992) {
+      setSheetOpen(false)
+      setNotification('Please place the marker at the desired position and open the settings again.')
+      setTimeout(() => setNotification(null), 5000)
+    }
   }
 
   const handleToggleMarkerMode = () => {
@@ -521,8 +534,10 @@ function DevApp() {
     setInputMode(newMode)
     setError(null)
     
-    // On mobile switching to marker mode, close settings panel so user can see the map
-    if (newMode === 'marker' && window.innerWidth < 992) {
+    const hasMarkerResults = savedResults?.jobStatus?.state === 'completed'
+
+    // On mobile switching to marker mode, guide the user only if no marker results exist
+    if (newMode === 'marker' && window.innerWidth < 992 && !hasMarkerResults) {
       setSheetOpen(false)
       setNotification('Please place the marker at the desired position and open the settings again.')
       // Auto-dismiss notification after 5 seconds
