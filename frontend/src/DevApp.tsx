@@ -239,20 +239,36 @@ type Settings = {
 
 function DevApp() {
   const [config, setConfig] = useState<ConfigResponse | null>(null)
-  const [jobId, setJobId] = useState<string | null>(null)
-  const [jobStatus, setJobStatus] = useState<JobStatus | null>(null)
-  const [error, setError] = useState<string | null>(null)
-  const [notification, setNotification] = useState<string | null>(null)
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
-  const [trackData, setTrackData] = useState<[number, number][]>(() => loadTrackData() || [])
-  const [poiData, setPoiData] = useState<MapPoi[]>([])
-  const [lastProcessedSettings, setLastProcessedSettings] = useState<(Settings & { inputMode: 'track' | 'marker', fileName?: string, markerLat?: number, markerLon?: number }) | null>(null)
-  const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(() => loadMarkerPosition())
+  
+  // Initialize input mode first (needed for loading correct results)
   const [inputMode, setInputMode] = useState<'track' | 'marker'>(() => {
     const savedMode = loadInputMode()
     if (savedMode) return savedMode
     return loadMarkerPosition() ? 'marker' : 'track'
   })
+  
+  // Load saved results for initial input mode (read mode from localStorage directly to avoid stale closure)
+  const [jobId, setJobId] = useState<string | null>(() => {
+    const mode = loadInputMode() || (loadMarkerPosition() ? 'marker' : 'track')
+    const results = loadResultsForMode(mode)
+    return results?.jobId || null
+  })
+  const [jobStatus, setJobStatus] = useState<JobStatus | null>(() => {
+    const mode = loadInputMode() || (loadMarkerPosition() ? 'marker' : 'track')
+    const results = loadResultsForMode(mode)
+    return results?.jobStatus || null
+  })
+  const [error, setError] = useState<string | null>(null)
+  const [notification, setNotification] = useState<string | null>(null)
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null)
+  const [trackData, setTrackData] = useState<[number, number][]>(() => loadTrackData() || [])
+  const [poiData, setPoiData] = useState<MapPoi[]>(() => {
+    const mode = loadInputMode() || (loadMarkerPosition() ? 'marker' : 'track')
+    const results = loadResultsForMode(mode)
+    return results?.poiData || []
+  })
+  const [lastProcessedSettings, setLastProcessedSettings] = useState<(Settings & { inputMode: 'track' | 'marker', fileName?: string, markerLat?: number, markerLon?: number }) | null>(null)
+  const [markerPosition, setMarkerPosition] = useState<[number, number] | null>(() => loadMarkerPosition())
   const [sheetOpen, setSheetOpen] = useState(() => window.innerWidth >= 992)
   const [tileId, setTileId] = useState<string>(loadTilePreference())
   const [pulseFab, setPulseFab] = useState(() => window.innerWidth < 992)
@@ -357,22 +373,15 @@ function DevApp() {
           }))
         }
         
-        // Restore search results for current input mode
-        const savedResults = loadResultsForMode(inputMode)
-        if (savedResults) {
-          setPoiData(savedResults.poiData)
-          setJobStatus(savedResults.jobStatus)
-          setJobId(savedResults.jobId)
-          // Restore lastProcessedSettings if job was completed
-          if (savedResults.jobStatus?.state === 'completed') {
-            setLastProcessedSettings({
-              ...settings,
-              inputMode,
-              fileName: uploadedFile?.name,
-              markerLat: markerPosition?.[0],
-              markerLon: markerPosition?.[1],
-            })
-          }
+        // Restore lastProcessedSettings if results were loaded (happens in state initialization)
+        if (jobStatus?.state === 'completed') {
+          setLastProcessedSettings({
+            ...settings,
+            inputMode,
+            fileName: uploadedFile?.name,
+            markerLat: markerPosition?.[0],
+            markerLon: markerPosition?.[1],
+          })
         }
       } catch (err) {
         setError(`Failed to load config: ${err}`)
