@@ -288,6 +288,7 @@ function DevApp() {
   const [filterModalOpen, setFilterModalOpen] = useState(false)
   const [filterModalMode, setFilterModalMode] = useState<FilterModalMode>('include')
   const [confirmSearchModalOpen, setConfirmSearchModalOpen] = useState(false)
+  const [confirmResetModalOpen, setConfirmResetModalOpen] = useState(false)
 
   const fetchGeoJson = useCallback(
     async (id: string) => {
@@ -604,6 +605,17 @@ function DevApp() {
   }
 
   const handleReset = () => {
+    // Check if we have existing completed results
+    if (jobStatus?.state === 'completed' && poiData.length > 0) {
+      setConfirmResetModalOpen(true)
+      return
+    }
+    
+    // Proceed with reset
+    performReset()
+  }
+
+  const performReset = () => {
     // Clear localStorage persistence
     clearPersistedSettings()
     
@@ -624,6 +636,15 @@ function DevApp() {
       excludes: config?.defaults.exclude || [],
       presets: [],
     })
+  }
+
+  const handleConfirmReset = () => {
+    setConfirmResetModalOpen(false)
+    performReset()
+  }
+
+  const handleCancelReset = () => {
+    setConfirmResetModalOpen(false)
   }
 
   const openPresetModal = () => setPresetModalOpen(true)
@@ -755,6 +776,11 @@ function DevApp() {
     }
   }
 
+  // Check if search is currently running
+  const isSearchRunning = useMemo(() => {
+    return jobStatus?.state === 'queued' || jobStatus?.state === 'processing'
+  }, [jobStatus])
+
   // Check if current settings match the last processed settings
   const settingsUnchanged = useMemo(() => {
     if (!lastProcessedSettings || !jobStatus || jobStatus.state !== 'completed') {
@@ -838,6 +864,7 @@ function DevApp() {
         shouldPulseFab={pulseFab}
         onFabClick={() => setPulseFab(false)}
         isSearchDisabled={settingsUnchanged}
+        isSearchRunning={isSearchRunning}
       />
 
       <PresetSelectionModal
@@ -887,6 +914,26 @@ function DevApp() {
       >
         <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>
           Starting a new search will clear all previous results. Do you want to continue?
+        </p>
+      </Modal>
+
+      <Modal
+        open={confirmResetModalOpen}
+        title="Reset All Data?"
+        onClose={handleCancelReset}
+        footer={
+          <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            <button className="btn btn-secondary btn-compact" onClick={handleCancelReset}>
+              Cancel
+            </button>
+            <button className="btn btn-primary btn-compact" onClick={handleConfirmReset}>
+              OK
+            </button>
+          </div>
+        }
+      >
+        <p style={{ margin: 0, color: 'var(--color-text-secondary)' }}>
+          This will clear all data including saved results, settings, and uploads. Do you want to continue?
         </p>
       </Modal>
     </div>

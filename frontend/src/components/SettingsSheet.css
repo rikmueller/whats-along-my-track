@@ -554,6 +554,30 @@
   flex-shrink: 0;
 }
 
+input:disabled,
+select:disabled,
+textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--wa-bg);
+}
+
+.upload-tile.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.add-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.chip-delete:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .ghost {
   background: transparent;
   border: 1px solid var(--color-border);
@@ -602,6 +626,12 @@
   color: var(--color-primary);
   box-shadow: var(--wa-card-shadow);
   font-weight: 600;
+}
+
+.segmented-option:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
 }
 
 .chip {
