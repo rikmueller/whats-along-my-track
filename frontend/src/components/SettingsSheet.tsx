@@ -178,7 +178,7 @@ export default function SettingsSheet({
               Reset
             </button>
             <button className="btn btn-primary btn-compact" onClick={onStart}>
-              {status?.state === 'processing' ? 'Processing...' : 'Process'}
+              {status?.state === 'processing' ? 'Searching...' : 'Search'}
             </button>
             <button
               className="sheet-mobile-close"
@@ -199,7 +199,7 @@ export default function SettingsSheet({
               Reset
             </button>
             <button className="btn btn-primary btn-compact" onClick={onStart}>
-              {status?.state === 'processing' ? 'Processing...' : 'Process'}
+              {status?.state === 'processing' ? 'Searching...' : 'Search'}
             </button>
           </div>
         </div>
