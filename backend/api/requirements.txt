@@ -13,4 +13,4 @@ python-dotenv==1.2.1
 # Web-specific dependencies
 Flask==3.1.2
 Werkzeug==3.1.5
-Flask-SocketIO==5.3.6
+Flask-SocketIO==5.6.0
